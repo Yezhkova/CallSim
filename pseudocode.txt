@@ -1,0 +1,86 @@
+======================Client======================
+
+
+state = "Connected"
+emit("Register")                    // Client sends register request
+wait_for_event("Registered")        // Wait for confirmation
+state = "Registered"
+
+loop:
+    if state == "Registered":
+    	emit("Call")
+        event = wait_for_event()
+        
+        if event == "Calling":
+            state = "Calling"
+
+        else if event == "Answering":
+            state = "Answering"
+
+    else if state == "Calling":
+        event = wait_for_event()
+
+        if event == "Rejected":
+            state = "Registered"
+
+        else if event == "Accepted":
+            state = "Talking"
+
+    else if state == "Answering":
+        user_choice = wait_for_user_input(["Accept", "Reject"])
+
+        if user_choice == "Accept":
+            emit("Accept")
+            state = "Talking"
+
+        else if user_choice == "Reject":
+            emit("Reject")
+            state = "Registered"
+    	    
+endloop
+
+====================== Server ======================
+
+state = "Connected"
+
+wait_for_event("Register") from client
+add_to_registered_clients(client)
+emit("Registered") to client
+state = "Registered"
+
+loop:
+    if state == "Registered":
+    	emit("Registered")
+        event = wait_for_event()
+
+        if event == "Call":
+            state = "Calling"
+            
+        else if event == "Answer":
+            state = "Answering"
+
+    else if state == "Calling":
+    	emit("Calling") || emit("Answer")
+        event = wait_for_event()
+
+        if event == "Accept":
+            emit("Accepted")
+            state = "Talking"
+
+        else if event == "Reject":
+            emit("Rejected")
+            state = "Registered"
+
+    else if state == "Answering":
+        emit("Answering")
+        event = wait_for_event()
+
+        if event == "Accept":
+            emit("Accepted")
+            state = "Talking"
+
+        else if event == "Reject":
+            emit("Rejected")
+            state = "Registered"
+
+endloop
