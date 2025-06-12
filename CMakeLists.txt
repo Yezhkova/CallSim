@@ -13,18 +13,7 @@ enable_testing()
 add_subdirectory(Client)
 add_subdirectory(Server)
 add_subdirectory(proto)
-add_subdirectory(test)
-add_subdirectory(fmt)
-
-add_library(turnstile STATIC turnstile.cpp)
-target_link_libraries(turnstile PUBLIC fmt::fmt)
-target_include_directories(turnstile PUBLIC 
-                            ${CMAKE_CURRENT_SOURCE_DIR}
-                            ${CMAKE_CURRENT_SOURCE_DIR}/magic_enum/include/magic_enum
-)
-
-add_executable(turnstileApp turnstileApp.cpp)
-target_link_libraries(turnstileApp PUBLIC fmt::fmt turnstile)
-target_include_directories(turnstileApp PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/magic_enum/include/magic_enum
-)
+add_subdirectory(turnstileEnum)
+add_subdirectory(turnstileEnum/test)
+add_subdirectory(turnstileOOP)
+add_subdirectory(turnstileOOP/test)
