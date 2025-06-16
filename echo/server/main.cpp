@@ -1,7 +1,6 @@
 #include <boost/asio.hpp>
-#include <iostream>
+#include <fmt/core.h>
 
-// Объявление функции из server.cpp
 void run_server(boost::asio::io_context &io, unsigned short port);
 
 int main()
@@ -14,7 +13,7 @@ int main()
     }
     catch (const std::exception &e)
     {
-        std::cerr << "Server exception: " << e.what() << std::endl;
+        fmt::println(stderr, "Server exception: {}", e.what());
     }
     return 0;
 }

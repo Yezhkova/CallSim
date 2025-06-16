@@ -1,5 +1,5 @@
 #include <boost/asio.hpp>
-#include <iostream>
+#include <fmt/core.h>
 #include <memory>
 #include "client.h"
 
@@ -19,7 +19,7 @@ int main()
     }
     catch (const std::exception &e)
     {
-        std::cerr << "Client exception: " << e.what() << std::endl;
+        fmt::println(stderr, "Client exception: {}", e.what());
     }
     return 0;
 }

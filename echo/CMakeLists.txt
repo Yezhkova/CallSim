@@ -1,4 +1,11 @@
 find_package(Boost REQUIRED)
+include(FetchContent)
+
+FetchContent_Declare(
+    fmt
+    GIT_REPOSITORY https://github.com/fmtlib/fmt.git
+)
+FetchContent_MakeAvailable(fmt)
 
 add_executable(client
     client/main.cpp
@@ -6,12 +13,12 @@ add_executable(client
     client/client.h
 )
 target_include_directories(client PRIVATE ${Boost_INCLUDE_DIRS})
-target_link_libraries(client pthread)
+target_link_libraries(client pthread fmt::fmt)
 
 add_executable(server
     server/main.cpp
     server/server.cpp
 )
 target_include_directories(server PRIVATE ${Boost_INCLUDE_DIRS})
-target_link_libraries(server pthread)
+target_link_libraries(server pthread fmt::fmt)
 
