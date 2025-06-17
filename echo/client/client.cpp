@@ -9,7 +9,12 @@ void Client::start()
                           {
                               if (!ec)
                               {
+                                  fmt::println("[Client] Connected to server.");
                                   self->read_header();
+                              }
+                              else
+                              {
+                                  fmt::println(stderr, "[Client] Failed to connect: {}", ec.message());
                               }
                           });
 }
