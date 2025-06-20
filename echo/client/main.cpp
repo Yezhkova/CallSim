@@ -2,7 +2,6 @@
 
 #include "client.h"
 #include <boost/asio.hpp>
-#include <memory>
 
 int main() {
     try {

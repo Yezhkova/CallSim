@@ -2,7 +2,7 @@
 
 #include <boost/asio.hpp>
 
-void run_server(boost::asio::io_context& io, unsigned short port);
+void run_server(boost::asio::io_context& io, uint16_t port);
 
 int main() {
     try {

@@ -10,7 +10,7 @@ class ServerSession : public std::enable_shared_from_this<ServerSession> {
     Tcp::socket       socket_;
     std::vector<char> body_buf_;
     std::string       remote_address_;
-    unsigned short    remote_port_;
+    uint16_t          remote_port_;
 
    public:
     explicit ServerSession(Tcp::socket&& socket) : socket_(std::move(socket)) {
