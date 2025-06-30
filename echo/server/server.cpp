@@ -33,7 +33,15 @@ void Server::ioRun() {
     io_.run();
 }
 
-bool Server::contains(const std::string& clientLogin) {
+void Server::stop() {
+    clients_.clear();
+    boost::system::error_code ec;
+    acceptor_.cancel(ec);
+    acceptor_.close(ec);
+    io_.stop();
+}
+
+bool Server::contains(const std::string& clientLogin) const {
     return (clients_.find(clientLogin) != clients_.end());
 }
 

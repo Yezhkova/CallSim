@@ -39,18 +39,21 @@ void Session::readBody(std::shared_ptr<uint32_t> length) {
             if (ec == boost::asio::error::eof ||
                 ec == boost::asio::error::connection_reset) {
                 fmt::print("Client {} disconnected\n", self->getEndpoint());
+                fmt::println("{}", ec.what());
                 return;
             }
             if (ec) {
                 fmt::println(stderr, "[Server] Error: {}", ec.what());
                 return;
             }
-
             Message msg;
             if (msg.ParseFromArray(self->body_buf_.data(),
                                    self->body_buf_.size())) {
-                fmt::println("{}", toPrintable(msg));
+                fmt::println("{}", self->toPrintable(msg));
                 self->nextState(msg);
+                if (self->isOpen()) {
+                    self->readHeader();
+                }
             } else {
                 fmt::println(stderr, "[Server] Failed to parse message");
             }
@@ -71,47 +74,53 @@ void Session::sendMessage(const Message& msg_proto) {
     boost::asio::async_write(socket_,
                              boost::asio::buffer(*msg),
                              [self](boost::system::error_code ec, std::size_t) {
-                                 if (!ec)
-                                     self->readHeader();
-                                 else
+                                 if (ec) {
                                      fmt::println(
                                          stderr,
                                          "[Server] Failed to write: {}",
                                          ec.message());
+                                 }
                              });
 }
 
 bool Session::registerClient(const std::string& name) {
-    if (getServer()->contains(name)) {
-        Message repeat_name_query =
-            MessageBuilder()
-                .type(Rejected)
-                .from("Server")
-                .payload("Login '" + name +
-                         "' already exists. Enter another login ('register "
-                         "<your_login>')\n")
-                .build();
-        sendMessage(repeat_name_query);
+    if (name.empty()) {
+        sendMessage(MessageBuilder::registrationDenied(name));
         return false;
-    } else {
-        getServer()->save(name, shared_from_this());
-        Message confirm_registration_query =
-            MessageBuilder()
-                .type(Registered)
-                .from("Server")
-                .to(name)
-                .payload("Client '" + name + "' registered successfully")
-                .build();
-        sendMessage(confirm_registration_query);
-        return true;
     }
+    if (getServer()->contains(name)) {
+        sendMessage(MessageBuilder::registrationDenied(name));
+        return false;
+    }
+    getServer()->save(name, shared_from_this());
+    sendMessage(MessageBuilder::registrationConfirmed(name));
+    return true;
 }
 
 bool Session::deleteClient(const std::string& name) {
     return getServer()->deleteClient(name);
 }
 
-std::string Session::getEndpoint() {
+std::string Session::getEndpoint() const {
     return socket_.remote_endpoint().address().to_string() + ':' +
            std::to_string(socket_.remote_endpoint().port());
+}
+
+void Session::close() {
+    fmt::print("Client {} disconnected\n", getEndpoint());
+    boost::system::error_code ec;
+    socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
+    socket_.close(ec);
+}
+
+inline std::string Session::toPrintable(const Message& msg) {
+    std::string result;
+    std::time_t t = static_cast<std::time_t>(msg.timestamp() / 1000);
+    char        buf[64];
+    std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", std::localtime(&t));
+    result += fmt::format("{}", buf);
+    result += fmt::format(" - [{}] ", getEndpoint());
+    result += fmt::format(" - '{}'", magic_enum::enum_name(msg.type()));
+    // result += fmt::format(" -> [{}]", msg.to_user());
+    return result;
 }

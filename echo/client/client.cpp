@@ -2,7 +2,7 @@
 
 #include "messageBuilder.h"
 
-void Client::start() {
+void ClientTransport::start() {
     auto self = shared_from_this();
     socket_.async_connect(endpoint_, [self](boost::system::error_code ec) {
         if (!ec) {
@@ -13,11 +13,12 @@ void Client::start() {
             fmt::println(stderr,
                          "[Client] Failed to connect: {}",
                          ec.message());
+            self->onExit();
         }
     });
 }
 
-void Client::readHeader() {
+void ClientTransport::readHeader() {
     auto self        = shared_from_this();
     auto body_length = std::make_shared<uint32_t>(0);
     auto header_buf  = boost::asio::buffer(body_length.get(), sizeof(uint32_t));
@@ -32,7 +33,7 @@ void Client::readHeader() {
         });
 }
 
-void Client::readBody(uint32_t length) {
+void ClientTransport::readBody(uint32_t length) {
     auto self     = shared_from_this();
     auto body_buf = std::make_shared<std::vector<char>>(length);
     boost::asio::async_read(
@@ -41,7 +42,6 @@ void Client::readBody(uint32_t length) {
         [self, body_buf](boost::system::error_code ec, std::size_t) {
             Message msg;
             if (msg.ParseFromArray(body_buf->data(), body_buf->size())) {
-                fmt::println("{}", toPrintable(msg));
                 self->nextState(msg);
                 self->readHeader();
             } else {
@@ -50,7 +50,7 @@ void Client::readBody(uint32_t length) {
         });
 }
 
-void Client::sendMessage(const Message& msg_proto) {
+void ClientTransport::sendMessageToServer(const Message& msg_proto) {
     auto        self = shared_from_this();
     std::string serialized;
     if (!msg_proto.SerializeToString(&serialized)) {
@@ -61,7 +61,6 @@ void Client::sendMessage(const Message& msg_proto) {
     uint32_t len = htonl(msg_proto.ByteSizeLong());
     msg->append(reinterpret_cast<const char*>(&len), sizeof(len));
     msg->append(serialized);
-
     boost::asio::async_write(
         self->socket_,
         boost::asio::buffer(*msg),
@@ -72,17 +71,9 @@ void Client::sendMessage(const Message& msg_proto) {
         });
 }
 
-void Client::onRegister(const std::string& name) {
-    Message msg = MessageBuilder()
-                      .type(Register)
-                      .from(name)
-                      .payload(fmt::format(
-                          "{}:{} is trying to register",
-                          socket_.local_endpoint().address().to_string(),
-                          std::to_string(socket_.local_endpoint().port())))
-                      .build();
-    nextState(msg);
-}
-void Client::onExit() {
-
-}
+void ClientTransport::onExit() {
+    boost::system::error_code ec;
+    socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
+    socket_.close(ec);
+    io_context_.stop();
+};

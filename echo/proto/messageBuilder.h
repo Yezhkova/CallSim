@@ -6,6 +6,27 @@
 
 class MessageBuilder {
    public:
+    static Message registerQuery(const std::string& login) {
+        return MessageBuilder().type(Register).from(login).build();
+    }
+
+    static Message exitQuery(const std::string& login) {
+        return MessageBuilder().type(Exit).from(login).build();
+    }
+
+    static Message registrationConfirmed(const std::string& login) {
+        return MessageBuilder().type(Registered).to(login).build();
+    }
+    static Message registrationDenied(const std::string& login) {
+        return MessageBuilder().type(Register).to(login).build();
+    }
+
+    static Message operationDenied() { return MessageBuilder().build(); }
+
+   private:
+    Message msg_;
+
+   private:
     MessageBuilder& type(MessageType type) {
         msg_.set_type(type);
         return *this;
@@ -31,9 +52,6 @@ class MessageBuilder {
         return msg_;
     }
 
-   private:
-    Message msg_;
-
     static int64_t getCurrentTimestamp() {
         using namespace std::chrono;
         return duration_cast<milliseconds>(
@@ -41,15 +59,3 @@ class MessageBuilder {
             .count();
     }
 };
-
-inline std::string toPrintable(const Message& msg) {
-    std::string result;
-    std::time_t t = static_cast<std::time_t>(msg.timestamp() / 1000);
-    char        buf[64];
-    std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", std::localtime(&t));
-    result += fmt::format("{} - ", buf);
-    result += fmt::format("[{}] - ", msg.from_user());
-    result += fmt::format("{}", msg.payload());
-
-    return result;
-}
