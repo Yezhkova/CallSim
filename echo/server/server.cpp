@@ -1,5 +1,6 @@
 #include <fmt/core.h>
 
+#include "../proto/message.pb.h"
 #include <boost/asio.hpp>
 
 using Tcp = boost::asio::ip::tcp;
@@ -60,52 +61,52 @@ class ServerSession : public std::enable_shared_from_this<ServerSession> {
             [self](boost::system::error_code ec, std::size_t) {
                 if (ec == boost::asio::error::eof ||
                     ec == boost::asio::error::connection_reset) {
-                    fmt::println("Client {}:{} disconnected",
-                                 self->remote_address_,
-                                 self->remote_port_);
+                    auto ep = self->socket_.remote_endpoint();
+                    fmt::print("Client {}:{} disconnected\n",
+                               ep.address().to_string(),
+                               ep.port());
                     return;
                 }
                 if (ec) {
-                    fmt::println(stderr,
-                                 "Read body error ({}:{}): {}",
-                                 self->remote_address_,
-                                 self->remote_port_,
-                                 ec.message());
+                    fmt::println(stderr, "[Server] Error: {}", ec.what());
                     return;
                 }
 
-                std::string message(self->body_buf_.begin(),
-                                    self->body_buf_.end());
-                fmt::println("[Message received from {}:{}]: {}",
-                             self->remote_address_,
-                             self->remote_port_,
-                             message);
-
-                std::string reply = "Re: " + message;
-                self->send_response(reply);
+                Message msg;
+                if (msg.ParseFromArray(self->body_buf_.data(),
+                                       self->body_buf_.size())) {
+                    fmt::println("[{}]: {}", msg.client(), msg.text());
+                    Message reply;
+                    reply.set_text("Re: " + msg.text());
+                    std::string serialized;
+                    if (!reply.SerializeToString(&serialized)) {
+                        fmt::println(stderr,
+                                     "[Server] Failed to serialize response");
+                        return;
+                    }
+                    self->send_response(serialized);
+                } else {
+                    fmt::println(stderr, "[Server] Failed to parse message");
+                }
             });
     }
 
-    void send_response(const std::string& message) {
-        auto self = shared_from_this();
-        auto msg  = std::make_shared<std::string>();
-        uint32_t len = htonl(message.size());
+    void send_response(const std::string& response) {
+        auto     self = shared_from_this();
+        auto     msg  = std::make_shared<std::string>();
+        uint32_t len  = htonl(response.size());
         msg->append(reinterpret_cast<const char*>(&len), sizeof(len));
-        msg->append(message);
-
+        msg->append(response);
         boost::asio::async_write(
             socket_,
             boost::asio::buffer(*msg),
-            [self, msg](boost::system::error_code ec, std::size_t) {
-                if (ec) {
+            [self](boost::system::error_code ec, std::size_t) {
+                if (!ec)
+                    self->read_header();
+                else
                     fmt::println(stderr,
-                                 "Write error ({}:{}): {}",
-                                 self->remote_address_,
-                                 self->remote_port_,
+                                 "[Server] Failed to write: {}",
                                  ec.message());
-                    return;
-                }
-                self->read_header();
             });
     }
 };

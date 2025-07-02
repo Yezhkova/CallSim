@@ -16,8 +16,7 @@ void Client::start() {
 }
 
 void Client::read_header() {
-    auto self = shared_from_this();
-
+    auto self        = shared_from_this();
     auto body_length = std::make_shared<uint32_t>(0);
     auto header_buf  = boost::asio::buffer(body_length.get(), sizeof(uint32_t));
     boost::asio::async_read(
@@ -38,10 +37,12 @@ void Client::read_body(uint32_t length) {
         socket_,
         boost::asio::buffer(*body_buf),
         [self, body_buf](boost::system::error_code ec, std::size_t) {
-            if (!ec) {
-                std::string_view sv(body_buf->data(), body_buf->size());
-                fmt::println("[Message received]: {}", sv);
+            Message msg;
+            if (msg.ParseFromArray(body_buf->data(), body_buf->size())) {
+                fmt::println("[Message received]: {}", msg.text());
                 self->read_header();
+            } else {
+                fmt::println(stderr, "Client parsing error: {}", ec.what());
             }
         });
 }
@@ -56,11 +57,22 @@ void Client::run_input_thread() {
 }
 
 void Client::send_message(const std::string& original) {
-    auto self = shared_from_this();
-    auto msg  = std::make_shared<std::string>();
-    uint32_t len = htonl(original.size());
+    auto    self = shared_from_this();
+    Message msg_proto;
+    msg_proto.set_client(
+        fmt::format("{}:{}",
+                    self->socket_.local_endpoint().address().to_string(),
+                    self->socket_.local_endpoint().port()));
+    msg_proto.set_text(original);
+    std::string serialized;
+    if (!msg_proto.SerializeToString(&serialized)) {
+        fmt::println(stderr, "[Client] Failed to serialize protobuf");
+        return;
+    }
+    auto     msg = std::make_shared<std::string>();
+    uint32_t len = htonl(msg_proto.ByteSizeLong());
     msg->append(reinterpret_cast<const char*>(&len), sizeof(len));
-    msg->append(original);
+    msg->append(serialized);
 
     boost::asio::async_write(
         self->socket_,
