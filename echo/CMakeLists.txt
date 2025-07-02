@@ -3,6 +3,7 @@ include(FindProtobuf)
 
 find_package(Boost REQUIRED)
 find_package(Protobuf REQUIRED)
+find_package(magic_enum CONFIG REQUIRED)
 
 FetchContent_Declare(
     fmt
@@ -11,19 +12,21 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(fmt)
 
 add_subdirectory(proto)
- 
-add_executable(client
-    client/main.cpp
-    client/client.cpp
-    client/client.h
-)
-target_include_directories(client PRIVATE ${Boost_INCLUDE_DIRS})
-target_link_libraries(client pthread fmt::fmt proto_lib)
 
-add_executable(server
-    server/main.cpp
-    server/server.cpp
-)
+file(GLOB CLIENT_SOURCES
+    client/*.cpp
+    client/*.h
+) 
+add_executable(client ${CLIENT_SOURCES})
+
+target_include_directories(client PRIVATE ${Boost_INCLUDE_DIRS})
+target_link_libraries(client pthread fmt::fmt proto_lib magic_enum::magic_enum)
+
+file(GLOB SERVER_SOURCES
+    server/*.cpp
+    server/*.h
+) 
+add_executable(server ${SERVER_SOURCES})
 target_include_directories(server PRIVATE ${Boost_INCLUDE_DIRS})
-target_link_libraries(server pthread fmt::fmt proto_lib)
+target_link_libraries(server pthread fmt::fmt proto_lib magic_enum::magic_enum)
 
