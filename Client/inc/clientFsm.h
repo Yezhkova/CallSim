@@ -48,6 +48,16 @@ namespace clt {
         };
     };
 
+    struct CallingState : public IState {
+        CallingState(StateMachine& fsm) : IState(fsm){};
+        std::unique_ptr<IState> transition(const Message& msg) override;
+
+        static std::unique_ptr<IState> create(StateMachine& fsm) {
+            fmt::println("-> Calling");
+            return std::make_unique<CallingState>(fsm);
+        };
+    };
+
     struct StateMachine {
        public:
         IClientTransport&       client_;

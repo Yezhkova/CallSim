@@ -25,6 +25,11 @@ namespace clt {
                     iss >> login;
                     onMessageSend(MessageBuilder::registerQuery(login));
                 } else if (command == "call") {
+                    std::string receiver;
+                    iss >> receiver;
+                    onMessageSend(
+                        MessageBuilder::callQuery(username_, receiver));
+
                 } else if (command == "accept") {
                 } else if (command == "reject") {
                 } else if (command == "text") {

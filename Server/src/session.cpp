@@ -116,6 +116,23 @@ bool Session::registerClient(const std::string& name) {
     return true;
 }
 
+bool Session::callClient(const std::string& sender,
+                         const std::string& receiver) {
+    auto receiver_it = getServer()->getSession(receiver);
+    if (receiver_it && receiver_it != shared_from_this()) {
+        try {
+            receiver_it->nextState(
+                MessageBuilder::answerQuery(sender, receiver));
+            return true;
+        } catch (const InvalidTransitionException& ex) {
+            return false;
+        } catch (const NullSessionException& ex) {
+            close();
+        }
+    }
+    return false;
+}
+
 bool Session::deleteClient(const std::string& name) {
     return getServer()->deleteClient(name);
 }
