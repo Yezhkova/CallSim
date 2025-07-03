@@ -50,10 +50,12 @@ namespace clt {
         switch (msg.type()) {
             case Accepted:
                 fmt::println("<- Calling");
+                // TODO
                 return TalkingState::create(fsm_);
                 break;
             case Rejected:
                 fmt::println("<- Calling");
+                // TODO
                 return RegisteredState::create(fsm_);
                 break;
             default:
@@ -61,4 +63,46 @@ namespace clt {
                 break;
         }
     };
+
+    // timer_(fsm.client_.getContext())
+    AnsweringState::AnsweringState(StateMachine&      fsm,
+                                   const std::string& receiver)
+      : IState(fsm), receiver_(receiver){};
+
+    // void AnsweringState::enter() {
+    //     timer_.expires_after(std::chrono::seconds(3));
+
+    //     auto self = shared_from_this();
+    //     timer_.async_wait([self](const boost::system::error_code& ec) {
+    //         if (!ec) {
+    //             self->onTimeout();
+    //         }
+    //     });
+    // }
+
+    void AnsweringState::onTimeout() {
+        fsm_.client_.sendMessageToServer(MessageBuilder::callDenied(receiver_));
+    }
+
+    std::unique_ptr<IState> AnsweringState::transition(const Message& msg) {
+        switch (msg.type()) {
+                // case Rejected:
+                //     fmt::println("<- Answering");
+                //     break;
+
+            default:
+                return std::unique_ptr<IState>{};
+                break;
+        }
+    };
+
+    std::unique_ptr<IState> TalkingState::transition(const Message& msg) {
+        switch (msg.type()) {
+                // fmt::println("<- Calling");
+
+            default:
+                return std::unique_ptr<IState>{};
+                break;
+        }
+    }
 }  // namespace clt

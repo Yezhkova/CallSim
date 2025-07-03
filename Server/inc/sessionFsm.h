@@ -88,6 +88,19 @@ namespace ses {
         };
     };
 
+    struct AnsweringState : public IState {
+        AnsweringState(std::shared_ptr<ISession> session, StateMachine& fsm)
+          : IState(session, fsm){};
+
+        std::unique_ptr<IState> transition(const Message& msg) override;
+
+        static std::unique_ptr<IState> create(std::shared_ptr<ISession> session,
+                                              StateMachine&             fsm) {
+            fmt::println("{} -> Answering", session->getEndpoint());
+            return std::make_unique<AnsweringState>(session, fsm);
+        };
+    };
+
     struct StateMachine {
        public:
         std::unique_ptr<IState> state_ = nullptr;
