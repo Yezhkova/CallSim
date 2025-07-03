@@ -1,5 +1,6 @@
-#include <gtest/gtest.h>
 #include "turnstile.h"
+
+#include <gtest/gtest.h>
 // #include "turnstileSwitch.h"
 
 TEST(TurnstileTest, CoinUnlocks) {

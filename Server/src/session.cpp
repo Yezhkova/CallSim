@@ -49,8 +49,19 @@ void Session::readBody(std::shared_ptr<uint32_t> length) {
             Message msg;
             if (msg.ParseFromArray(self->body_buf_.data(),
                                    self->body_buf_.size())) {
-                fmt::println("{}", self->toPrintable(msg));
-                self->nextState(msg);
+                fmt::println("{}", toPrintable(msg));
+                try {
+                    self->nextState(msg);
+                } catch (const NullSessionException& ex) {
+                    fmt::println(stderr, "{}", ex.what());
+                    // self->sendMessageToClient(MessageBuilder::exitQuery());
+                    self->close();
+                } catch (const InvalidTransitionException& ex) {
+                    if (msg.type() != Exit) {
+                        self->sendMessageToClient(
+                            MessageBuilder::operationDenied(msg.type()));
+                    }
+                }
                 if (self->isOpen()) {
                     self->readHeader();
                 }
@@ -60,7 +71,7 @@ void Session::readBody(std::shared_ptr<uint32_t> length) {
         });
 }
 
-void Session::sendMessage(const Message& msg_proto) {
+void Session::sendMessageToClient(const Message& msg_proto) {
     auto        self = shared_from_this();
     std::string serialized;
     if (!msg_proto.SerializeToString(&serialized)) {
@@ -83,17 +94,25 @@ void Session::sendMessage(const Message& msg_proto) {
                              });
 }
 
+void Session::sendMessageTo(const std::string& name, const Message& msg) {
+    auto it = getServer()->getSession(name);
+    if (!it) {
+        return;
+    }
+    it->sendMessageToClient(msg);
+}
+
 bool Session::registerClient(const std::string& name) {
     if (name.empty()) {
-        sendMessage(MessageBuilder::registrationDenied(name));
+        sendMessageToClient(MessageBuilder::registrationDenied(name));
         return false;
     }
     if (getServer()->contains(name)) {
-        sendMessage(MessageBuilder::registrationDenied(name));
+        sendMessageToClient(MessageBuilder::registrationDenied(name));
         return false;
     }
     getServer()->save(name, shared_from_this());
-    sendMessage(MessageBuilder::registrationConfirmed(name));
+    sendMessageToClient(MessageBuilder::registrationConfirmed(name));
     return true;
 }
 
@@ -111,16 +130,4 @@ void Session::close() {
     boost::system::error_code ec;
     socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
     socket_.close(ec);
-}
-
-inline std::string Session::toPrintable(const Message& msg) {
-    std::string result;
-    std::time_t t = static_cast<std::time_t>(msg.timestamp() / 1000);
-    char        buf[64];
-    std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", std::localtime(&t));
-    result += fmt::format("{}", buf);
-    result += fmt::format(" - [{}] ", getEndpoint());
-    result += fmt::format(" - '{}'", magic_enum::enum_name(msg.type()));
-    // result += fmt::format(" -> [{}]", msg.to_user());
-    return result;
 }

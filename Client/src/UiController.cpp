@@ -1,4 +1,4 @@
-#include "uiController.h"
+#include "UiController.h"
 
 #include "messageBuilder.h"
 #include <string>
@@ -11,6 +11,12 @@ namespace clt {
                 std::istringstream iss(line);
                 std::string        command;
                 iss >> command;
+
+                std::transform(command.begin(),
+                               command.end(),
+                               command.begin(),
+                               [](unsigned char c) { return std::tolower(c); });
+
                 if (command == "exit") {
                     stopClient();
                     break;
@@ -22,6 +28,10 @@ namespace clt {
                 } else if (command == "accept") {
                 } else if (command == "reject") {
                 } else if (command == "text") {
+                    std::string target;
+                    iss >> target;
+                    std::string rest;
+                    std::getline(iss, rest);
                 } else if (command == "end") {
                 } else {
                     fmt::println("[UiController] Unknown command: '{}'",

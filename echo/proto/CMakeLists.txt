@@ -4,8 +4,6 @@ set(PROTO_FILE ${CMAKE_CURRENT_SOURCE_DIR}/message.proto)
 
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTO_FILE})
 
-add_library(proto_lib ${PROTO_SRCS} ${PROTO_HDRS})
-target_include_directories(proto_lib PUBLIC ${Protobuf_INCLUDE_DIRS}
-                                            ${CMAKE_CURRENT_BINARY_DIR} 
-                                            ${CMAKE_CURRENT_SOURCE_DIR} )
-target_link_libraries(proto_lib PUBLIC protobuf::libprotobuf)
+add_library(proto_lib_echo ${PROTO_SRCS} ${PROTO_HDRS})
+target_include_directories(proto_lib_echo PUBLIC ${Protobuf_INCLUDE_DIRS})
+target_link_libraries(proto_lib_echo PUBLIC protobuf::libprotobuf)

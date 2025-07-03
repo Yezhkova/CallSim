@@ -1,11 +1,10 @@
+#include "turnstile.h"
 #include <iostream>
 #include <magic_enum/magic_enum.hpp>
-
-#include "turnstile.h"
 // #include "turnstileSwitch.h"
 
 int main() {
-    State current = State::Locked;
+    State       current = State::Locked;
     std::string input;
 
     fmt::println("Current state: {}", magic_enum::enum_name(current));

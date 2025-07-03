@@ -1,12 +1,89 @@
+# Основной стиль Google
 BasedOnStyle: Google
+
+# Общие настройки
 IndentWidth: 4
-ColumnLimit: 100
+TabWidth: 4
+UseTab: Never
+ColumnLimit: 80
+AllowShortFunctionsOnASingleLine: InlineOnly
+AllowShortIfStatementsOnASingleLine: false
+BreakBeforeBraces: Attach  # как в Google
+
+# Пробелы
+SpaceBeforeParens: ControlStatements
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+SpaceAfterCStyleCast: true
+SpaceBeforeAssignmentOperators: true
+
+# Выравнивание и отступы
+AlignOperands: true
+AlignConsecutiveAssignments: true
+AlignConsecutiveDeclarations: true
+AlignConsecutiveMacros: true
+AlignTrailingComments: true
+AlignAfterOpenBracket: Align
+AlignEscapedNewlines: Right
+AlwaysBreakAfterDefinitionReturnType: None
+AlwaysBreakTemplateDeclarations: Yes
+
+# Отступы в namespace
+NamespaceIndentation: All
+
+# Параметры и аргументы
+BinPackParameters: false
+BinPackArguments: false
+AllowAllParametersOfDeclarationOnNextLine: false
+AllowAllArgumentsOnNextLine: false
+
+# Include-ы
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex: '^<.*\.h>'
+    Priority: 1
+    SortPriority: 0
+    CaseSensitive: false
+  - Regex: '^".*\.h"'
+    Priority: 2
+    SortPriority: 0
+    CaseSensitive: false
+SortIncludes: true
+IncludeIsMainRegex: '([-_](test|unittest))?$'
+
+# Конструкторы/деструкторы/инициализация
+ConstructorInitializerIndentWidth: 2
+BreakConstructorInitializers: BeforeComma
+
+# Шаблоны
+AlwaysBreakTemplateDeclarations: MultiLine
+
+# Форматирование перечислений
+AllowShortEnumsOnASingleLine: false
+BreakBeforeTernaryOperators: true
+BreakBeforeBinaryOperators: None
+
+# Форматирование лямбд
+LambdaBodyIndentation: Signature
+
+# Комментарии
+ReflowComments: true
+CommentPragmas: '^ IWYU pragma:'
+
+# Препроцессор
+IndentPPDirectives: AfterHash
+SortUsingDeclarations: true
+MacroBlockBegin: '^BEGIN_.*'
+MacroBlockEnd: '^END_.*'
+
+# Специфика C++
+Cpp11BracedListStyle: true
 DerivePointerAlignment: false
 PointerAlignment: Left
-AllowShortFunctionsOnASingleLine: Empty
-SortIncludes: true
-IncludeBlocks: Preserve
-SpacesInAngles: false
-SpaceAfterCStyleCast: true
-BreakBeforeBraces: Attach
-AlignAfterOpenBracket: DontAlign
+
+# Контроль за пустыми строками
+EmptyLineBeforeAccessModifier: LogicalBlock
+MaxEmptyLinesToKeep: 1
+
+# Форматирование switch/case
+IndentCaseLabels: true

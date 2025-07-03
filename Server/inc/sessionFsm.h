@@ -1,11 +1,23 @@
 #pragma once
 
-#include <fmt/base.h>
+#include <fmt/core.h>
 
 #include "message.pb.h"
 #include <magic_enum/magic_enum.hpp>
 #include <memory>
 #include <stdexcept>
+
+class NullSessionException : public std::runtime_error {
+   public:
+    explicit NullSessionException(const std::string& msg)
+      : std::runtime_error(msg) {}
+};
+
+class InvalidTransitionException : public std::runtime_error {
+   public:
+    explicit InvalidTransitionException(const std::string& msg)
+      : std::runtime_error(msg) {}
+};
 
 namespace ses {
     struct StateMachine;
@@ -14,7 +26,11 @@ namespace ses {
        public:
         virtual bool        registerClient(const std::string& name) = 0;
         virtual bool        deleteClient(const std::string& name)   = 0;
-        virtual void        sendMessage(const Message& msg)         = 0;
+        virtual bool        callClient(const std::string& sender,
+                                       const std::string& receiver) = 0;
+        virtual void        sendMessageToClient(const Message& msg) = 0;
+        virtual void        sendMessageTo(const std::string& name,
+                                          const Message&     msg)       = 0;
         virtual std::string getEndpoint() const                     = 0;
         virtual void        close()                                 = 0;
     };

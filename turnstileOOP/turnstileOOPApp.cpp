@@ -4,7 +4,7 @@
 
 int main() {
     StateMachine fsm;
-    std::string input;
+    std::string  input;
 
     fmt::println("Current state: Locked");
     fmt::println("Enter 'Coin' or 'Push' (Ctrl+C to exit):");

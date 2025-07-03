@@ -1,9 +1,8 @@
 #pragma once
 
-#include <fmt/base.h>
-
-#include "uiController.h"
+#include "UiController.h"
 #include "message.pb.h"
+#include <boost/asio/steady_timer.hpp>
 #include <magic_enum/magic_enum.hpp>
 #include <memory>
 #include <stdexcept>
@@ -16,6 +15,7 @@ namespace clt {
        public:
         virtual void sendMessageToServer(const Message&) = 0;
         virtual void setLogin(const std::string& login)  = 0;
+        virtual boost::asio::io_context& getContext()    = 0;
     };
 
     struct IState {

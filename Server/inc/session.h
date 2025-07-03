@@ -28,15 +28,18 @@ class Session : public ses::ISession,
         fsm_ = ses::StateMachine(shared_from_this());
         readHeader();
     };
-    void        readBody(std::shared_ptr<uint32_t> length);
-    std::string toPrintable(const Message& msg);
+    void readBody(std::shared_ptr<uint32_t> length);
 
     std::shared_ptr<Server> getServer() const { return server_.lock(); };
     void                    nextState(const Message& msg) { fsm_.next(msg); }
 
-    void sendMessage(const Message& msg) override;
+    void sendMessageToClient(const Message& msg) override;
+    void sendMessageTo(const std::string& name, const Message& msg) override;
+
     void close() override;
     bool registerClient(const std::string& name) override;
+    bool callClient(const std::string& sender,
+                    const std::string& receiver) override;
     bool deleteClient(const std::string& name) override;
 
     std::string getEndpoint() const override;

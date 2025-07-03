@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+
 #include "turnstileOOP.h"
 
 TEST(TurnstileOOPTest, LockedToUnlocked) {
@@ -13,8 +14,8 @@ TEST(TurnstileOOPTest, LockedPushThrows) {
 
 TEST(TurnstileOOPTest, UnlockedToLocked) {
     StateMachine fsm;
-    fsm.next(Event::Coin);                   
-    EXPECT_NO_THROW(fsm.next(Event::Push)); 
+    fsm.next(Event::Coin);
+    EXPECT_NO_THROW(fsm.next(Event::Push));
 }
 
 TEST(TurnstileOOPTest, UnlockedCoinThrows) {
