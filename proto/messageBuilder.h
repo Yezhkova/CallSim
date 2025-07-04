@@ -1,5 +1,6 @@
 #pragma once
 
+#include <fmt/chrono.h>
 #include <fmt/core.h>
 
 #include "message.pb.h"
@@ -129,9 +130,8 @@ class MessageBuilder {
 inline std::string toPrintable(const Message& msg) {
     std::string result;
     std::time_t t = static_cast<std::time_t>(msg.timestamp() / 1000);
-    char        buf[64];
-    std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", std::localtime(&t));
-    result += fmt::format("{}", buf);
+    std::tm tm = *std::localtime(&t);
+    result +=  fmt::format("{:%Y-%m-%d %H:%M:%S}", tm);
     if (!msg.from_user().empty()) {
         result += fmt::format(" - [{}]", msg.from_user());
     }
