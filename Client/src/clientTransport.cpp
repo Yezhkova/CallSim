@@ -13,7 +13,7 @@ void ClientTransport::start() {
             fmt::println(stderr,
                          "[Client] Failed to connect: {}. Please enter 'exit'",
                          ec.message());
-            self->onExit();
+            self->shutdown();
         }
     });
 }
@@ -42,12 +42,16 @@ void ClientTransport::readBody(uint32_t length) {
         [self, body_buf](boost::system::error_code ec, std::size_t) {
             Message msg;
             if (msg.ParseFromArray(body_buf->data(), body_buf->size())) {
-                fmt::println("{}", toPrintable(msg));
-                self->nextState(msg);
-                self->readHeader();
+                fmt::println("{}", msg);
+                try {
+                    self->onMessageArrival(msg);
+                } catch (const std::exception& e) {
+                    fmt::println("{}", e.what());
+                }
             } else {
                 fmt::println(stderr, "Client parsing error: {}", ec.what());
             }
+            self->readHeader();
         });
 }
 
@@ -73,9 +77,9 @@ void ClientTransport::sendMessageToServer(const Message& msg_proto) {
         });
 }
 
-void ClientTransport::onExit() {
+void ClientTransport::shutdown() {
     boost::system::error_code ec;
     socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
     socket_.close(ec);
-    io_context_.stop();
+    io_context_.stop();  // TODO: this can be redundant
 };
