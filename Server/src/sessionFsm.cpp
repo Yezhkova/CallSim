@@ -167,12 +167,7 @@ std::unique_ptr<IState> AnsweringState::transition(const Message& msg) {
 
         switch (msg.type()) {
             case Text:
-                fmt::print("\r\033[K");
                 fmt::println("{} <- Talking", session->getEndpoint());
-
-                // session->sendMessageToSubscriberServer(
-                //     peer_,
-                //     MessageBuilder::talkConfirmed(msg.from_user(), peer_));
                 session->sendMessageToSubscriberClient(peer_, msg);
                 return TalkingState::create(session, fsm_, peer_);
                 break;
