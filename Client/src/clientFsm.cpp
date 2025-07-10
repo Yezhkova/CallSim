@@ -18,7 +18,6 @@ namespace clt {
             case Registered:
                 fmt::println("<- Connected");
                 fsm_.onRegister(msg.to_user());
-                fsm_.onRegister(msg.to_user());
                 return RegisteredState::create(fsm_);
                 break;
             default:
@@ -35,7 +34,7 @@ namespace clt {
                 break;
             case Answering:
                 fmt::println("<- Registered");
-                return AnsweringState::create(fsm_, msg.to_user());
+                return AnsweringState::create(fsm_);
                 break;
             default:
                 return std::unique_ptr<IState>{};
@@ -57,13 +56,41 @@ namespace clt {
                 fmt::println("<- Calling");
                 return RegisteredState::create(fsm_);
                 break;
-            case Registered:
-                fmt::println("<- Calling");
+            default:
+                return std::unique_ptr<IState>{};
+                break;
+        }
+    };
+
+    std::unique_ptr<IState> AnsweringState::transition(const Message& msg) {
+        switch (msg.type()) {
+            case Rejected:
+                fmt::println("<- Answering");
                 return RegisteredState::create(fsm_);
+                break;
+            case Accepted:
+                fmt::println("<- Answering");
+                return TalkingState::create(fsm_);
                 break;
             default:
                 return std::unique_ptr<IState>{};
                 break;
         }
     };
+
+    std::unique_ptr<IState> TalkingState::transition(const Message& msg) {
+        switch (msg.type()) {
+            case Text:
+                fmt::println("<- Talking");
+                return TalkingState::create(fsm_);
+                break;
+            case Registered:
+                fmt::println("<- Talking");
+                return RegisteredState::create(fsm_);
+                break;
+            default:
+                return std::unique_ptr<IState>{};
+                break;
+        }
+    }
 }  // namespace clt
