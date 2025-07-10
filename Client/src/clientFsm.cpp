@@ -3,9 +3,6 @@
 #include "messageBuilder.h"
 
 namespace clt {
-    StateMachine::StateMachine(IClientTransport& client, UiController& ui)
-      : client_(client), ui_(ui), state_{ConnectedState::create(*this)} {};
-
     void StateMachine::next(const Message& msg) {
         if (auto st = state_->transition(msg); st) {
             state_ = std::move(st);
@@ -20,8 +17,8 @@ namespace clt {
                 break;
             case Registered:
                 fmt::println("<- Connected");
-                fsm_.client_.setLogin(msg.to_user());
-                fsm_.ui_.setLogin(msg.to_user());
+                fsm_.onRegister(msg.to_user());
+                fsm_.onRegister(msg.to_user());
                 return RegisteredState::create(fsm_);
                 break;
             default:
@@ -46,4 +43,27 @@ namespace clt {
         }
     };
 
+    std::unique_ptr<IState> CallingState::transition(const Message& msg) {
+        switch (msg.type()) {
+            case Accepted:
+                fmt::println("<- Calling");
+                return TalkingState::create(fsm_);
+                break;
+            case Rejected:
+                fmt::println("<- Calling");
+                return RegisteredState::create(fsm_);
+                break;
+            case Registered:
+                fmt::println("<- Calling");
+                return RegisteredState::create(fsm_);
+                break;
+            case Registered:
+                fmt::println("<- Calling");
+                return RegisteredState::create(fsm_);
+                break;
+            default:
+                return std::unique_ptr<IState>{};
+                break;
+        }
+    };
 }  // namespace clt

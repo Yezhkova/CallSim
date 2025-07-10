@@ -14,18 +14,13 @@ namespace clt {
         std::function<void()>                   onCloseClientTransport;
 
        private:
-        std::thread thread_;
-        std::string username_ = "";
+        boost::asio::io_context& io_;
+        std::string              username_ = "";
 
        public:
-        UiController() {}
+        UiController(boost::asio::io_context& io) : io_(io) {}
 
         void run();
-
-        void join() {
-            if (thread_.joinable())
-                thread_.join();
-        }
 
         void setLogin(const std::string& login) { username_ = login; }
         void stopClient();

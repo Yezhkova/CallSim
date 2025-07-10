@@ -2,44 +2,51 @@
 #include "clientTransport.h"
 #include <boost/asio.hpp>
 
-int main() {
-    try {
-        boost::asio::io_context io;
-        auto                    endpoint =
-            Tcp::endpoint(boost::asio::ip::make_address("127.0.0.1"), 12345);
-        auto client_transport = std::make_shared<ClientTransport>(io, endpoint);
+int main() try {
+    boost::asio::io_context io;
 
-        clt::UiController ui;
+    auto endpoint =
+        Tcp::endpoint(boost::asio::ip::make_address("127.0.0.1"), 12345);
+    auto client_transport = std::make_shared<ClientTransport>(io, endpoint);
 
-        clt::StateMachine sm(*client_transport.get(), ui);
+    clt::UiController ui(io);
 
-        client_transport->nextState = [&sm](const Message& msg) {
-            sm.next(msg);
-        };
+    clt::StateMachine sm;
+    sm.onRegister = [&client_transport, &ui](const std::string& login) {
+        ui.setLogin(login);
+    };
 
-        ui.onMessageSend = [client_transport](const Message& msg) {
-            client_transport->sendMessageToServer(msg);
-        };
+    client_transport->onMessageArrival = [&sm](const Message& msg) {
+        sm.next(msg);
+    };
 
-        ui.onCloseClientTransport = [client_transport]() {
-            client_transport->onExit();
-        };
+    ui.onMessageSend = [&sm, client_transport](const Message& msg) {
+        client_transport->sendMessageToServer(msg);
+    };
 
-        boost::asio::signal_set signals(io, SIGINT, SIGTERM, SIGHUP);
-        signals.async_wait([&](const boost::system::error_code&,
-                               int signal_number) {
+    ui.onCloseClientTransport = [client_transport]() {
+        client_transport->shutdown();
+    };
+
+    boost::asio::signal_set signals(io, SIGINT, SIGTERM, SIGHUP);
+    signals.async_wait(
+        [&](const boost::system::error_code&, int signal_number) {
             fmt::println(" Received signal {}, stopping client", signal_number);
             ui.stopClient();
         });
 
-        ui.run();
+    ui.run();
+    client_transport->start();
 
-        client_transport->start();
-        io.run();
-        ui.join();
-        google::protobuf::ShutdownProtobufLibrary();
-    } catch (const std::exception& e) {
-        fmt::println(stderr, "ClientTransport exception: {}", e.what());
+    std::vector<std::thread> threads;
+    for (int i = 0; i < 2; ++i) {
+        threads.emplace_back([&io]() { io.run(); });
     }
+    for (auto& th : threads) th.join();
+    google::protobuf::ShutdownProtobufLibrary();
+
     return 0;
+} catch (const std::exception& e) {
+    fmt::println(stderr, "ClientTransport exception: {}", e.what());
+    return 1;
 }

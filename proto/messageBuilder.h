@@ -4,8 +4,6 @@
 
 #include "message.pb.h"
 #include <magic_enum/magic_enum.hpp>
-#include <optional>
-#include <string>
 
 class MessageBuilder {
    public:
@@ -29,15 +27,51 @@ class MessageBuilder {
                                const std::string& receiver) {
         return MessageBuilder().type(Answer).from(sender).to(receiver).build();
     }
+    static Message acceptQuery(const std::string& receiver) {
+        return MessageBuilder().type(Accept).to(receiver).build();
+    }
+    static Message rejectQuery(const std::string& receiver = "") {
+        return MessageBuilder().type(Reject).to(receiver).build();
+    }
+    static Message textQuery(const std::string& sender,
+                             const std::string& payload) {
+        return MessageBuilder()
+            .type(Text)
+            .from(sender)
+            .payload(payload)
+            .build();
+    }
+    static Message endQuery() { return MessageBuilder().type(End).build(); }
+    static Message acceptQuery(const std::string& receiver) {
+        return MessageBuilder().type(Accept).to(receiver).build();
+    }
+    static Message rejectQuery(const std::string& receiver = "") {
+        return MessageBuilder().type(Reject).to(receiver).build();
+    }
+    static Message textQuery(const std::string& sender,
+                             const std::string& payload) {
+        return MessageBuilder()
+            .type(Text)
+            .from(sender)
+            .payload(payload)
+            .build();
+    }
+    static Message endQuery() { return MessageBuilder().type(End).build(); }
     static Message exitQuery(const std::string& name) {
         return MessageBuilder().type(Exit).from(name).build();
     }
 
-    static Message registrationConfirmed(const std::string& login) {
+    static Message registrationConfirmed(const std::string& login = "" = "") {
+        std::string payload =
+            login.empty() ? ""
+                          : fmt::format("'{}' registered successfully", login);
+        std::string payload =
+            login.empty() ? ""
+                          : fmt::format("'{}' registered successfully", login);
         return MessageBuilder()
             .type(Registered)
             .to(login)
-            .payload(fmt::format("'{}' registered successfully", login))
+            .payload(payload)
             .build();
     }
     static Message registrationDenied(const std::string& login) {
@@ -79,6 +113,48 @@ class MessageBuilder {
             .type(Rejected)
             .payload(fmt::format("The subscriber '{}' cannot answer your call",
                                  receiver))
+            .build();
+    }
+
+    static Message talkConfirmed(const std::string& sender,
+                                 const std::string& receiver) {
+        return MessageBuilder()
+            .type(Accepted)
+            .from(sender)
+            .to(receiver)
+            .build();
+    }
+    static Message talkDenied(const std::string& receiver = "") {
+        std::string payload =
+            receiver.empty()
+                ? ""
+                : fmt::format("The subscriber '{}' has rejected your call",
+                              receiver);
+        return MessageBuilder()
+            .type(Rejected)
+            .to(receiver)
+            .payload(payload)
+            .build();
+    }
+
+    static Message talkConfirmed(const std::string& sender,
+                                 const std::string& receiver) {
+        return MessageBuilder()
+            .type(Accepted)
+            .from(sender)
+            .to(receiver)
+            .build();
+    }
+    static Message talkDenied(const std::string& receiver = "") {
+        std::string payload =
+            receiver.empty()
+                ? ""
+                : fmt::format("The subscriber '{}' has rejected your call",
+                              receiver);
+        return MessageBuilder()
+            .type(Rejected)
+            .to(receiver)
+            .payload(payload)
             .build();
     }
 
@@ -126,16 +202,60 @@ class MessageBuilder {
     }
 };
 
-inline std::string toPrintable(const Message& msg) {
-    std::string result;
-    std::time_t t = static_cast<std::time_t>(msg.timestamp() / 1000);
-    char        buf[64];
-    std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", std::localtime(&t));
-    result += fmt::format("{}", buf);
-    if (!msg.from_user().empty()) {
-        result += fmt::format(" - [{}]", msg.from_user());
+template <>
+struct fmt::formatter<Message> {
+    constexpr auto parse(format_parse_context& ctx) {
+        return ctx.begin();
     }
-    result += fmt::format(" - {}", msg.payload());
 
-    return result;
-}
+    template <typename FormatContext>
+    auto format(const Message& msg, FormatContext& ctx) const {
+        std::string result;
+
+        if (!msg.from_user().empty()) {
+            result += fmt::format(" - [{}]", msg.from_user());
+        }
+        if (!msg.to_user().empty()) {
+            result += fmt::format(" -> [{}]", msg.to_user());
+        }
+        if (!msg.payload().empty()) {
+            result += fmt::format(" - {}", msg.payload());
+        }
+        if (!result.empty()) {
+            std::time_t t = static_cast<std::time_t>(msg.timestamp() / 1000);
+            std::tm tm    = *std::localtime(&t);
+            result = fmt::format("{:%Y-%m-%d %H:%M:%S}", tm) + result;
+        }
+
+        return fmt::format_to(ctx.out(), "{}", result);
+    }
+};
+
+template <>
+struct fmt::formatter<Message> {
+    constexpr auto parse(format_parse_context& ctx) {
+        return ctx.begin();
+    }
+
+    template <typename FormatContext>
+    auto format(const Message& msg, FormatContext& ctx) const {
+        std::string result;
+
+        if (!msg.from_user().empty()) {
+            result += fmt::format(" - [{}]", msg.from_user());
+        }
+        if (!msg.to_user().empty()) {
+            result += fmt::format(" -> [{}]", msg.to_user());
+        }
+        if (!msg.payload().empty()) {
+            result += fmt::format(" - {}", msg.payload());
+        }
+        if (!result.empty()) {
+            std::time_t t = static_cast<std::time_t>(msg.timestamp() / 1000);
+            std::tm tm    = *std::localtime(&t);
+            result = fmt::format("{:%Y-%m-%d %H:%M:%S}", tm) + result;
+        }
+
+        return fmt::format_to(ctx.out(), "{}", result);
+    }
+};
