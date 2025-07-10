@@ -116,6 +116,22 @@ namespace ses {
         }
     };
 
+    std::unique_ptr<IState> AnsweringState::transition(const Message& msg) {
+        auto session = session_.lock();
+        if (!session)
+            throw NullSessionException("CallingState: session expired");
 
-
+        switch (msg.type()) {
+            case Rejected:
+                return RegisteredState::create(session, fsm_);
+                break;
+            case Exit:
+                session->deleteClient(msg.from_user());
+                return std::unique_ptr<IState>{};
+                break;
+            default:
+                return std::unique_ptr<IState>{};
+                break;
+        }
+    };
 }  // namespace ses
