@@ -62,7 +62,6 @@ namespace ses {
                 session->sendMessageToClient(
                     MessageBuilder::answerConfirmed(msg.from_user()));
                 return AnsweringState::create(session, fsm_, msg.from_user());
-                return AnsweringState::create(session, fsm_, msg.from_user());
                 break;
             case Exit:
                 session->deleteClient(msg.from_user());

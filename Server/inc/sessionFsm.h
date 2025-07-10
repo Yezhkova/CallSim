@@ -5,8 +5,6 @@
 #include "message.pb.h"
 #include "messageBuilder.h"
 #include <boost/asio.hpp>
-#include "messageBuilder.h"
-#include <boost/asio.hpp>
 #include <magic_enum/magic_enum.hpp>
 #include <memory>
 #include <stdexcept>
@@ -44,22 +42,6 @@ namespace ses {
             const std::string& name = "") const = 0;
 
         virtual void close() = 0;
-        virtual bool registerClient(const std::string& name)           = 0;
-        virtual bool deleteClient(const std::string& name)             = 0;
-        virtual bool callClient(const std::string& sender,
-                                const std::string& receiver)           = 0;
-        virtual void sendMessageToClient(const Message& msg)           = 0;
-        virtual void sendMessageToSubscriberServer(const std::string& name,
-                                                   const Message&     msg) = 0;
-        virtual void sendMessageToSubscriberClient(const std::string& name,
-                                                   const Message&     msg) = 0;
-
-        virtual std::string              getEndpoint() const = 0;
-        virtual boost::asio::io_context& getContext() const  = 0;
-        virtual std::shared_ptr<boost::asio::steady_timer> getTimer(
-            const std::string& name = "") const = 0;
-
-        virtual void close() = 0;
     };
 
     struct IState {
@@ -70,7 +52,6 @@ namespace ses {
        public:
         IState(std::shared_ptr<ISession> session, StateMachine& fsm)
           : session_{session}, fsm_(fsm) {}
-          : session_{session}, fsm_(fsm) {}
         virtual ~IState()                                          = default;
         virtual std::unique_ptr<IState> transition(const Message&) = 0;
 
@@ -80,7 +61,6 @@ namespace ses {
     struct ConnectedState : public IState {
         ConnectedState(std::shared_ptr<ISession> session, StateMachine& fsm)
           : IState(session, fsm) {}
-          : IState(session, fsm) {}
 
         std::unique_ptr<IState> transition(const Message& msg) override;
 
@@ -89,12 +69,10 @@ namespace ses {
             fmt::println("{} -> Connected", session->getEndpoint());
             return std::make_unique<ConnectedState>(session, fsm);
         }
-        }
     };
 
     struct RegisteredState : public IState {
         RegisteredState(std::shared_ptr<ISession> session, StateMachine& fsm)
-          : IState(session, fsm) {}
           : IState(session, fsm) {}
 
         std::unique_ptr<IState> transition(const Message& msg) override;
@@ -104,16 +82,9 @@ namespace ses {
             fmt::println("{} -> Registered", session->getEndpoint());
             return std::make_unique<RegisteredState>(session, fsm);
         }
-        }
     };
 
     struct CallingState : public IState {
-        std::string peer_;
-
-        CallingState(std::shared_ptr<ISession> session,
-                     StateMachine&             fsm,
-                     const std::string&        peer)
-          : IState(session, fsm), peer_(peer) {}
         std::string peer_;
 
         CallingState(std::shared_ptr<ISession> session,
@@ -125,7 +96,6 @@ namespace ses {
 
         static std::unique_ptr<IState> create(std::shared_ptr<ISession> session,
                                               StateMachine&             fsm,
-                                              const std::string&        peer,
                                               const std::string&        peer) {
             fmt::println("{} -> Calling", session->getEndpoint());
             return std::make_unique<CallingState>(session, fsm, peer);
@@ -136,7 +106,6 @@ namespace ses {
        public:
         std::unique_ptr<IState> state_ = nullptr;
 
-        StateMachine() {}
         StateMachine() {}
         StateMachine(std::shared_ptr<ISession> session)
           : state_{ConnectedState::create(session, *this)} {}
