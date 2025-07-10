@@ -19,12 +19,14 @@ class Server : public std::enable_shared_from_this<Server> {
     Server(boost::asio::io_context& io, uint16_t port)
       : io_(io), port_(port), acceptor_(io_, Tcp::endpoint(Tcp::v4(), port)){};
     void start();
-    void doAccept();
-    void ioRun();
     void stop();
 
     bool contains(const std::string& clientLogin) const;
     void save(const std::string& clientLogin, std::shared_ptr<Session> session);
     bool deleteClient(const std::string& clientLogin);
     std::shared_ptr<Session> getSession(const std::string& name) const;
+    boost::asio::io_context& getContext() const { return io_; };
+
+   private:
+    void doAccept();
 };

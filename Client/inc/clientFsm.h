@@ -14,8 +14,6 @@ namespace clt {
     class IClientTransport {
        public:
         virtual void sendMessageToServer(const Message&) = 0;
-        virtual void setLogin(const std::string& login)  = 0;
-        virtual boost::asio::io_context& getContext()    = 0;
     };
 
     struct IState {
@@ -29,33 +27,33 @@ namespace clt {
     };
 
     struct ConnectedState : public IState {
-        ConnectedState(StateMachine& fsm) : IState(fsm){};
+        ConnectedState(StateMachine& fsm) : IState(fsm) {}
         std::unique_ptr<IState> transition(const Message& msg) override;
 
         static std::unique_ptr<IState> create(StateMachine& fsm) {
             fmt::println("-> Connected");
             return std::make_unique<ConnectedState>(fsm);
-        };
+        }
     };
 
     struct RegisteredState : public IState {
-        RegisteredState(StateMachine& fsm) : IState(fsm){};
+        RegisteredState(StateMachine& fsm) : IState(fsm) {}
         std::unique_ptr<IState> transition(const Message& msg) override;
 
         static std::unique_ptr<IState> create(StateMachine& fsm) {
             fmt::println("-> Registered");
             return std::make_unique<RegisteredState>(fsm);
-        };
+        }
     };
 
     struct CallingState : public IState {
-        CallingState(StateMachine& fsm) : IState(fsm){};
+        CallingState(StateMachine& fsm) : IState(fsm) {}
         std::unique_ptr<IState> transition(const Message& msg) override;
 
         static std::unique_ptr<IState> create(StateMachine& fsm) {
             fmt::println("-> Calling");
             return std::make_unique<CallingState>(fsm);
-        };
+        }
     };
 
     struct AnsweringState : public IState {
@@ -80,13 +78,12 @@ namespace clt {
 
     struct StateMachine {
        public:
-        IClientTransport&       client_;
-        UiController&           ui_;
         std::unique_ptr<IState> state_;
 
-        StateMachine(IClientTransport& client, UiController& ui);
+        StateMachine() : state_{ConnectedState::create(*this)} {}
 
-        void next(const Message& msg);
+        std::function<void(const std::string& login)> onRegister;
+        void                                          next(const Message& msg);
     };
 
 }  // namespace clt
