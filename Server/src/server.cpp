@@ -20,19 +20,6 @@ void Server::doAccept() {
     });
 }
 
-void Server::ioRun() {
-    // uint32_t                 n = (std::thread::hardware_concurrency() == 0)
-    //                                  ? 1
-    //                                  : std::thread::hardware_concurrency();
-    // std::vector<std::thread> threads;
-    // for (unsigned i = 0; i < n; ++i)
-    //     threads.emplace_back([this]() { io_.run(); });
-
-    // for (auto& t : threads) t.join();
-
-    io_.run();
-}
-
 void Server::stop() {
     clients_.clear();
     boost::system::error_code ec;

@@ -49,18 +49,17 @@ void Session::readBody(std::shared_ptr<uint32_t> length) {
             Message msg;
             if (msg.ParseFromArray(self->body_buf_.data(),
                                    self->body_buf_.size())) {
-                fmt::println("{}", toPrintable(msg));
+                fmt::println("{}", msg);
                 try {
                     self->nextState(msg);
-                } catch (const NullSessionException& ex) {
-                    fmt::println(stderr, "{}", ex.what());
-                    // self->sendMessageToClient(MessageBuilder::exitQuery());
-                    self->close();
                 } catch (const InvalidTransitionException& ex) {
                     if (msg.type() != Exit) {
                         self->sendMessageToClient(
                             MessageBuilder::operationDenied(msg.type()));
                     }
+                } catch (const std::exception& ex) {
+                    fmt::println(stderr, "{}", ex.what());
+                    self->close();
                 }
                 if (self->isOpen()) {
                     self->readHeader();
@@ -94,7 +93,16 @@ void Session::sendMessageToClient(const Message& msg_proto) {
                              });
 }
 
-void Session::sendMessageTo(const std::string& name, const Message& msg) {
+void Session::sendMessageToSubscriberServer(const std::string& name,
+                                            const Message&     msg) {
+    auto it = getServer()->getSession(name);
+    if (!it) {
+        return;
+    }
+    it->nextState(msg);
+}
+void Session::sendMessageToSubscriberClient(const std::string& name,
+                                            const Message&     msg) {
     auto it = getServer()->getSession(name);
     if (!it) {
         return;
@@ -120,17 +128,29 @@ bool Session::callClient(const std::string& sender,
                          const std::string& receiver) {
     auto receiver_it = getServer()->getSession(receiver);
     if (receiver_it && receiver_it != shared_from_this()) {
-        try {
-            receiver_it->nextState(
-                MessageBuilder::answerQuery(sender, receiver));
-            return true;
-        } catch (const InvalidTransitionException& ex) {
-            return false;
-        } catch (const NullSessionException& ex) {
-            close();
-        }
+        receiver_it->nextState(MessageBuilder::answerQuery(sender, receiver));
+
+        receiver_it->timer_->expires_after(std::chrono::seconds(6));
+        receiver_it->timer_->async_wait(
+            [receiver_it](const boost::system::error_code& ec) {
+                if (ec) {
+                    fmt::println("'Answer' timer: {}", ec.message());
+                    return;
+                }
+                fmt::println("Timeout reached, automatic Reject emitted.");
+                receiver_it->nextState(MessageBuilder::rejectQuery());
+            });
+        return true;
     }
     return false;
+}
+
+std::shared_ptr<Server> Session::getServer() const {
+    auto s = server_.lock();
+    if (!s) {
+        throw std::runtime_error("Server reference is expired");
+    }
+    return s;
 }
 
 bool Session::deleteClient(const std::string& name) {
@@ -140,6 +160,15 @@ bool Session::deleteClient(const std::string& name) {
 std::string Session::getEndpoint() const {
     return socket_.remote_endpoint().address().to_string() + ':' +
            std::to_string(socket_.remote_endpoint().port());
+}
+
+boost::asio::io_context& Session::getContext() const {
+    return getServer()->getContext();
+};
+
+std::shared_ptr<boost::asio::steady_timer> Session::getTimer(
+    const std::string& name) const {
+    return name.empty() ? timer_ : getServer()->getSession(name)->timer_;
 }
 
 void Session::close() {
