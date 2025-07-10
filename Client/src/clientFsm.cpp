@@ -66,10 +66,14 @@ namespace clt {
 
     std::unique_ptr<IState> AnsweringState::transition(const Message& msg) {
         switch (msg.type()) {
-                // case Rejected:
-                //     fmt::println("<- Answering");
-                //     break;
-
+            case Rejected:
+                fmt::println("<- Answering");
+                return RegisteredState::create(fsm_);
+                break;
+            case Accepted:
+                fmt::println("<- Answering");
+                return TalkingState::create(fsm_);
+                break;
             default:
                 return std::unique_ptr<IState>{};
                 break;
