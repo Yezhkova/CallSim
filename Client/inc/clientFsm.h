@@ -76,41 +76,6 @@ namespace clt {
         }
     };
 
-    struct AnsweringState
-      : public IState,
-        public std::enable_shared_from_this<AnsweringState> {
-       private:
-        std::string receiver_;
-        // boost::asio::steady_timer timer_;
-
-       public:
-        AnsweringState(StateMachine& fsm, const std::string& receiver);
-        std::unique_ptr<IState> transition(const Message& msg) override;
-
-        void enter();
-
-        static std::unique_ptr<IState> create(StateMachine&      fsm,
-                                              const std::string& receiver) {
-            fmt::println("-> Answering (with timeout)");
-            auto answering = std::make_unique<AnsweringState>(fsm, receiver);
-            // answering->enter();
-            return answering;
-        };
-
-       private:
-        void onTimeout();
-    };
-
-    struct TalkingState : public IState {
-        TalkingState(StateMachine& fsm) : IState(fsm){};
-        std::unique_ptr<IState> transition(const Message& msg) override;
-
-        static std::unique_ptr<IState> create(StateMachine& fsm) {
-            fmt::println("-> Talking");
-            return std::make_unique<TalkingState>(fsm);
-        };
-    };
-
     struct StateMachine {
        public:
         std::unique_ptr<IState> state_;
