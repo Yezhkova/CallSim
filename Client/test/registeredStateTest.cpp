@@ -15,12 +15,6 @@ class RegisteredStateTest : public ::testing::Test {
     void SetUp() override {
         state = std::make_unique<clt::RegisteredState>(fsm);
     }
-
-    // Message createMessage(MessageType type) {
-    //     Message msg;
-    //     msg.set_type(type);
-    //     return msg;
-    // }
 };
 
 TEST_F(RegisteredStateTest, CallingMessageTransitionsToCallingState) {

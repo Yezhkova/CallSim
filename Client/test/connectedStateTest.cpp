@@ -7,7 +7,7 @@ using ::testing::_;
 using ::testing::Return;
 using ::testing::StrictMock;
 
-class ConnectedStateTest : public ::testing::Test {
+class ConnectedClientStateTest : public ::testing::Test {
    protected:
     StrictMock<MockStateMachine> fsm;
     std::unique_ptr<clt::IState> state;
@@ -17,14 +17,14 @@ class ConnectedStateTest : public ::testing::Test {
     }
 };
 
-TEST_F(ConnectedStateTest, RejectedMessageReturnsConnectedState) {
+TEST_F(ConnectedClientStateTest, RejectedMessageReturnsConnectedState) {
     Message msg  = createMessage(MessageType::Rejected);
     auto    next = state->transition(msg);
     ASSERT_NE(next, nullptr);
     EXPECT_TRUE(dynamic_cast<clt::ConnectedState*>(next.get()));
 }
 
-TEST_F(ConnectedStateTest, RegisteredMessageCallsOnRegisterAndTransitions) {
+TEST_F(ConnectedClientStateTest, RegisteredMessageCallsOnRegisterAndTransitions) {
     std::string expectedLogin = "alice";
     Message     msg = createMessage(MessageType::Registered, expectedLogin);
     EXPECT_CALL(fsm, onRegisterMock(expectedLogin)).Times(1);
@@ -33,7 +33,7 @@ TEST_F(ConnectedStateTest, RegisteredMessageCallsOnRegisterAndTransitions) {
     EXPECT_TRUE(dynamic_cast<clt::RegisteredState*>(next.get()) != nullptr);
 }
 
-TEST_F(ConnectedStateTest, RejectedMessageKeepsStateConnected) {
+TEST_F(ConnectedClientStateTest, RejectedMessageKeepsStateConnected) {
     std::string attemptedLogin = "alice";
     Message     msg = createMessage(MessageType::Rejected, attemptedLogin);
     EXPECT_CALL(fsm, onRegisterMock).Times(0);
@@ -42,8 +42,8 @@ TEST_F(ConnectedStateTest, RejectedMessageKeepsStateConnected) {
     EXPECT_TRUE(dynamic_cast<clt::ConnectedState*>(next.get()) != nullptr);
 }
 
-TEST_F(ConnectedStateTest, UnknownMessageTypeReturnsNullptr) {
-    Message msg  = createMessage(MessageType::Call);  // Not handled
+TEST_F(ConnectedClientStateTest, UnknownMessageTypeReturnsNullptr) {
+    Message msg  = createMessage(MessageType::Call);
     auto    next = state->transition(msg);
     EXPECT_EQ(next, nullptr);
 }

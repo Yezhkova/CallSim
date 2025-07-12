@@ -19,16 +19,9 @@ target_include_directories(client
 target_link_libraries(client
     PRIVATE client_lib 
 )
+find_package(Protobuf REQUIRED)
 
 enable_testing()
-include(FetchContent)
-FetchContent_Declare(
-  googletest
-  URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
-)
-FetchContent_MakeAvailable(googletest)
-
-find_package(Protobuf REQUIRED)
 
 set(TEST_SOURCES
     test/connectedStateTest.cpp
@@ -48,7 +41,8 @@ target_include_directories(client_unit_tests
     PUBLIC inc ${CMAKE_SOURCE_DIR}/proto
 )
 target_link_libraries(client_unit_tests
-    gmock gtest gtest_main
+    GTest::gmock
+    GTest::gtest_main
     protobuf::libprotobuf
     fmt::fmt
 )
