@@ -57,23 +57,23 @@ namespace clt {
     };
 
     struct AnsweringState : public IState {
-        AnsweringState(StateMachine& fsm) : IState(fsm){};
+        AnsweringState(StateMachine& fsm) : IState(fsm){}
         std::unique_ptr<IState> transition(const Message& msg) override;
 
         static std::unique_ptr<IState> create(StateMachine& fsm) {
             fmt::println("-> Answering (with timeout)");
             return std::make_unique<AnsweringState>(fsm);
-        };
+        }
     };
 
     struct TalkingState : public IState {
-        TalkingState(StateMachine& fsm) : IState(fsm){};
+        TalkingState(StateMachine& fsm) : IState(fsm){}
         std::unique_ptr<IState> transition(const Message& msg) override;
 
         static std::unique_ptr<IState> create(StateMachine& fsm) {
             fmt::println("-> Talking");
             return std::make_unique<TalkingState>(fsm);
-        };
+        }
     };
 
     struct StateMachine {

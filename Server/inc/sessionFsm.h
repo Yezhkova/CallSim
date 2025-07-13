@@ -103,16 +103,39 @@ namespace ses {
     };
 
     struct AnsweringState : public IState {
-        AnsweringState(std::shared_ptr<ISession> session, StateMachine& fsm)
-          : IState(session, fsm){};
+        std::string peer_;
+
+        AnsweringState(std::shared_ptr<ISession> session,
+                       StateMachine&             fsm,
+                       const std::string&        peer)
+          : IState(session, fsm), peer_(peer) {}
 
         std::unique_ptr<IState> transition(const Message& msg) override;
 
         static std::unique_ptr<IState> create(std::shared_ptr<ISession> session,
-                                              StateMachine&             fsm) {
+                                              StateMachine&             fsm,
+                                              const std::string&        peer) {
             fmt::println("{} -> Answering", session->getEndpoint());
-            return std::make_unique<AnsweringState>(session, fsm);
-        };
+            return std::make_unique<AnsweringState>(session, fsm, peer);
+        }
+    };
+
+    struct TalkingState : public IState {
+        std::string peer_;
+
+        TalkingState(std::shared_ptr<ISession> session,
+                     StateMachine&             fsm,
+                     const std::string&        peer)
+          : IState(session, fsm), peer_(peer) {}
+
+        std::unique_ptr<IState> transition(const Message& msg) override;
+
+        static std::unique_ptr<IState> create(std::shared_ptr<ISession> session,
+                                              StateMachine&             fsm,
+                                              const std::string&        peer) {
+            fmt::println("{} -> Talking", session->getEndpoint());
+            return std::make_unique<TalkingState>(session, fsm, peer);
+        }
     };
 
     struct StateMachine {

@@ -18,7 +18,6 @@ namespace clt {
             case Registered:
                 fmt::println("<- Connected");
                 fsm_.onRegister(msg.to_user());
-                fsm_.onRegister(msg.to_user());
                 return RegisteredState::create(fsm_);
                 break;
             default:
@@ -47,15 +46,9 @@ namespace clt {
         switch (msg.type()) {
             case Accepted:
                 fmt::println("<- Calling");
-                // TODO
                 return TalkingState::create(fsm_);
                 break;
             case Rejected:
-                fmt::println("<- Calling");
-                // TODO
-                return RegisteredState::create(fsm_);
-                break;
-            case Registered:
                 fmt::println("<- Calling");
                 return RegisteredState::create(fsm_);
                 break;
@@ -85,13 +78,5 @@ namespace clt {
         }
     };
 
-    std::unique_ptr<IState> TalkingState::transition(const Message& msg) {
-        switch (msg.type()) {
-                // fmt::println("<- Calling");
 
-            default:
-                return std::unique_ptr<IState>{};
-                break;
-        }
-    }
 }  // namespace clt
