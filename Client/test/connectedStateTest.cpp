@@ -24,18 +24,19 @@ TEST_F(ConnectedClientStateTest, RejectedMessageReturnsConnectedState) {
     EXPECT_TRUE(dynamic_cast<clt::ConnectedState*>(next.get()));
 }
 
-TEST_F(ConnectedClientStateTest, RegisteredMessageCallsOnRegisterAndTransitions) {
-    std::string expectedLogin = "alice";
-    Message     msg = createMessage(MessageType::Registered, expectedLogin);
-    EXPECT_CALL(fsm, onRegisterMock(expectedLogin)).Times(1);
+TEST_F(ConnectedClientStateTest,
+       RegisteredMessageCallsOnRegisterAndTransitions) {
+    std::string expected_login = "alice";
+    Message     msg = createMessage(MessageType::Registered, expected_login);
+    EXPECT_CALL(fsm, onRegisterMock(expected_login)).Times(1);
     auto next = state->transition(msg);
     ASSERT_NE(next, nullptr);
     EXPECT_TRUE(dynamic_cast<clt::RegisteredState*>(next.get()) != nullptr);
 }
 
 TEST_F(ConnectedClientStateTest, RejectedMessageKeepsStateConnected) {
-    std::string attemptedLogin = "alice";
-    Message     msg = createMessage(MessageType::Rejected, attemptedLogin);
+    std::string attempted_login = "alice";
+    Message     msg = createMessage(MessageType::Rejected, attempted_login);
     EXPECT_CALL(fsm, onRegisterMock).Times(0);
     auto next = state->transition(msg);
     ASSERT_NE(next, nullptr);

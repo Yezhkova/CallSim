@@ -7,7 +7,7 @@ using ::testing::_;
 using ::testing::Return;
 using ::testing::StrictMock;
 
-class RegisteredStateTest : public ::testing::Test {
+class RegisteredClientStateTest : public ::testing::Test {
    protected:
     StrictMock<MockStateMachine> fsm;
     std::unique_ptr<clt::IState> state;
@@ -17,21 +17,21 @@ class RegisteredStateTest : public ::testing::Test {
     }
 };
 
-TEST_F(RegisteredStateTest, CallingMessageTransitionsToCallingState) {
+TEST_F(RegisteredClientStateTest, CallingMessageTransitionsToCallingState) {
     Message msg  = createMessage(MessageType::Calling);
     auto    next = state->transition(msg);
     ASSERT_NE(next, nullptr);
     EXPECT_TRUE(dynamic_cast<clt::CallingState*>(next.get()) != nullptr);
 }
 
-TEST_F(RegisteredStateTest, AnsweringMessageTransitionsToAnsweringState) {
+TEST_F(RegisteredClientStateTest, AnsweringMessageTransitionsToAnsweringState) {
     Message msg  = createMessage(MessageType::Answering);
     auto    next = state->transition(msg);
     ASSERT_NE(next, nullptr);
     EXPECT_TRUE(dynamic_cast<clt::AnsweringState*>(next.get()) != nullptr);
 }
 
-TEST_F(RegisteredStateTest, UnknownMessageReturnsNullptr) {
+TEST_F(RegisteredClientStateTest, UnknownMessageReturnsNullptr) {
     Message msg  = createMessage(MessageType::Text);
     auto    next = state->transition(msg);
     EXPECT_EQ(next, nullptr);

@@ -25,7 +25,7 @@ enable_testing()
 
 set(TEST_SOURCES
     test/connectedStateTest.cpp
-    # test/registeredStateTest.cpp
+    test/registeredStateTest.cpp
     # test/callingStateTest.cpp
     # test/answeringStateTest.cpp
     src/sessionFsm.cpp
