@@ -115,7 +115,8 @@ namespace ses {
         }
     };
 
-std::unique_ptr<IState> AnsweringState::transition(const Message& msg) {
+
+    std::unique_ptr<IState> AnsweringState::transition(const Message& msg) {
         auto session = session_.lock();
         if (!session)
             throw NullSessionException("AnsweringState: session expired");
