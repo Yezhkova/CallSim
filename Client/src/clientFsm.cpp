@@ -76,7 +76,7 @@ namespace clt {
                 return std::unique_ptr<IState>{};
                 break;
         }
-    }
+    };
 
     std::unique_ptr<IState> TalkingState::transition(const Message& msg) {
         switch (msg.type()) {
