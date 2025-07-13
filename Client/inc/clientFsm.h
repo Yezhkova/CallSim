@@ -57,7 +57,7 @@ namespace clt {
     };
 
     struct AnsweringState : public IState {
-        AnsweringState(StateMachine& fsm) : IState(fsm){}
+        AnsweringState(StateMachine& fsm) : IState(fsm) {}
         std::unique_ptr<IState> transition(const Message& msg) override;
 
         static std::unique_ptr<IState> create(StateMachine& fsm) {
@@ -67,7 +67,7 @@ namespace clt {
     };
 
     struct TalkingState : public IState {
-        TalkingState(StateMachine& fsm) : IState(fsm){}
+        TalkingState(StateMachine& fsm) : IState(fsm) {}
         std::unique_ptr<IState> transition(const Message& msg) override;
 
         static std::unique_ptr<IState> create(StateMachine& fsm) {
