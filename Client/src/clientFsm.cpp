@@ -78,19 +78,4 @@ namespace clt {
         }
     };
 
-    std::unique_ptr<IState> TalkingState::transition(const Message& msg) {
-        switch (msg.type()) {
-            case Text:
-                fmt::println("<- Talking");
-                return TalkingState::create(fsm_);
-                break;
-            case Registered:
-                fmt::println("<- Talking");
-                return RegisteredState::create(fsm_);
-                break;
-            default:
-                return std::unique_ptr<IState>{};
-                break;
-        }
-    }
 }  // namespace clt

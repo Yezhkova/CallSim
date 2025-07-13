@@ -115,7 +115,11 @@ namespace ses {
         }
     };
 
+<<<<<<< HEAD
 std::unique_ptr<IState> AnsweringState::transition(const Message& msg) {
+=======
+    std::unique_ptr<IState> AnsweringState::transition(const Message& msg) {
+>>>>>>> origin/master
         auto session = session_.lock();
         if (!session)
             throw NullSessionException("AnsweringState: session expired");
@@ -151,44 +155,6 @@ std::unique_ptr<IState> AnsweringState::transition(const Message& msg) {
                 session->sendMessageToSubscriberServer(
                     peer_,
                     MessageBuilder::talkDenied(msg.to_user()));
-                session->deleteClient(msg.from_user());
-                return std::unique_ptr<IState>{};
-                break;
-            default:
-                return std::unique_ptr<IState>{};
-                break;
-        }
-    };
-
-    std::unique_ptr<IState> TalkingState::transition(const Message& msg) {
-        auto session = session_.lock();
-        if (!session)
-            throw NullSessionException("TalkingState: session expired");
-
-        switch (msg.type()) {
-            case Text:
-                fmt::println("{} <- Talking", session->getEndpoint());
-                session->sendMessageToSubscriberClient(peer_, msg);
-                return TalkingState::create(session, fsm_, peer_);
-                break;
-            case End:
-                fmt::println("{} <- Talking", session->getEndpoint());
-                session->sendMessageToSubscriberServer(
-                    peer_,
-                    MessageBuilder::registerQuery(peer_));
-                session->sendMessageToClient(
-                    MessageBuilder::registrationConfirmed());
-                return RegisteredState::create(session, fsm_);
-                break;
-            case Register:
-                session->sendMessageToClient(
-                    MessageBuilder::registrationConfirmed());
-                return RegisteredState::create(session, fsm_);
-                break;
-            case Exit:
-                session->sendMessageToSubscriberServer(
-                    peer_,
-                    MessageBuilder::registerQuery(peer_));
                 session->deleteClient(msg.from_user());
                 return std::unique_ptr<IState>{};
                 break;
