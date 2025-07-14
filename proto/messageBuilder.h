@@ -30,20 +30,22 @@ class MessageBuilder {
     static Message acceptQuery(const std::string& receiver) {
         return MessageBuilder().type(Accept).to(receiver).build();
     }
-    static Message rejectQuery(const std::string& receiver = "") {
-        return MessageBuilder().type(Reject).to(receiver).build();
+    static Message rejectQuery(const std::string& sender = "") {
+        return MessageBuilder().type(Reject).from(sender).build();
     }
-    static Message textQuery(const std::string& sender,
-                             const std::string& payload) {
+    static Message textQuery(const std::string& payload,
+                             const std::string& sender = "") {
         return MessageBuilder()
             .type(Text)
             .from(sender)
             .payload(payload)
             .build();
     }
-    static Message endQuery() { return MessageBuilder().type(End).build(); }
-    static Message exitQuery(const std::string& name) {
-        return MessageBuilder().type(Exit).from(name).build();
+    static Message endQuery(const std::string& sender = "") {
+        return MessageBuilder().type(End).from(sender).build();
+    }
+    static Message exitQuery(const std::string& sender) {
+        return MessageBuilder().type(Exit).from(sender).build();
     }
 
     static Message registrationConfirmed(const std::string& login = "") {
@@ -118,6 +120,7 @@ class MessageBuilder {
             .payload(payload)
             .build();
     }
+    static Message talkEnded() { return MessageBuilder().type(Ended).build(); }
 
     static Message operationDenied(MessageType type) {
         return MessageBuilder()
@@ -182,7 +185,7 @@ template <> struct fmt::formatter<Message> {
         if (!result.empty()) {
             std::time_t t  = static_cast<std::time_t>(msg.timestamp() / 1000);
             std::tm     tm = *std::localtime(&t);
-            char buf[20];
+            char        buf[20];
             std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &tm);
             result = std::string(buf) + result;
         }

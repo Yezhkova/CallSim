@@ -2,6 +2,8 @@
 
 #include <fmt/core.h>
 
+#include <atomic>
+#include <csignal>
 #include <iostream>
 
 #include "boost/asio.hpp"
@@ -12,6 +14,12 @@ namespace clt {
        public:
         std::function<void(const Message& msg)> onMessageSend;
         std::function<void()>                   onCloseClientTransport;
+        static std::atomic_bool                 shutdown_requested;
+
+        static void handle_sigint(int) {
+            shutdown_requested = true;
+            // TODO: make exit here
+        }
 
        private:
         boost::asio::io_context& io_;

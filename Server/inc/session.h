@@ -35,7 +35,7 @@ class Session : public ses::ISession,
     void readBody(std::shared_ptr<uint32_t> length);
 
     std::shared_ptr<Server> getServer() const;
-    void nextState(const Message& msg) { fsm_.next(msg); }
+    void                    nextState(const Message& msg) { fsm_.next(msg); }
 
     void sendMessageToClient(const Message& msg) override;
     void sendMessageToSubscriberServer(const std::string& name,
@@ -50,8 +50,7 @@ class Session : public ses::ISession,
 
     std::string                                getEndpoint() const override;
     boost::asio::io_context&                   getContext() const override;
-    std::shared_ptr<boost::asio::steady_timer> getTimer(
-        const std::string& name = "") const override;
+    std::shared_ptr<boost::asio::steady_timer> getTimer() const override;
 
     bool isOpen() { return socket_.is_open(); }
     ~Session() { fmt::println("Session destroyed"); };

@@ -13,6 +13,6 @@ public:
     MOCK_METHOD(void, sendMessageToSubscriberClient, (const std::string&, const Message&), (override));
     MOCK_METHOD(std::string, getEndpoint, (), (const, override));
     MOCK_METHOD(boost::asio::io_context&, getContext, (), (const, override));
-    MOCK_METHOD(std::shared_ptr<boost::asio::steady_timer>, getTimer, (const std::string&), (const, override));
+    MOCK_METHOD(std::shared_ptr<boost::asio::steady_timer>, getTimer, (), (const, override));
     MOCK_METHOD(void, close, (), (override));
 };

@@ -3,11 +3,14 @@
 #include "messageBuilder.h"
 #include <string>
 namespace clt {
+    std::atomic_bool UiController::shutdown_requested = false;
 
     void UiController::run() {
         boost::asio::post(io_, [this]() {
+            std::signal(SIGINT, UiController::handle_sigint);
+
             std::string line;
-            while (std::getline(std::cin, line)) {
+            while (std::getline(std::cin, line) && !shutdown_requested.load()) {
                 boost::asio::post(io_, [this, line]() {
                     std::istringstream iss(line);
                     std::string        command;
@@ -36,12 +39,12 @@ namespace clt {
                     } else if (command == "reject") {
                         onMessageSend(MessageBuilder::rejectQuery(username_));
                     } else if (command == "text") {
-                        std::string rest;
-                        std::getline(iss, rest);
+                        std::string messageText;
+                        std::getline(iss, messageText);
                         onMessageSend(
-                            MessageBuilder::textQuery(username_, rest));
+                            MessageBuilder::textQuery(messageText, username_));
                     } else if (command == "end") {
-                        onMessageSend(MessageBuilder::endQuery());
+                        onMessageSend(MessageBuilder::endQuery(username_));
                     } else {
                         fmt::println("[UiController] Unknown command: '{}'",
                                      command);
