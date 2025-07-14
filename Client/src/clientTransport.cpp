@@ -78,6 +78,7 @@ void ClientTransport::sendMessageToServer(const Message& msg_proto) {
 }
 
 void ClientTransport::shutdown() {
+    fmt::println("ClientTransport::shutdown()");
     boost::system::error_code ec;
     socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
     socket_.close(ec);

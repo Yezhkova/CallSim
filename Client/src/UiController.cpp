@@ -3,14 +3,10 @@
 #include "messageBuilder.h"
 #include <string>
 namespace clt {
-    std::atomic_bool UiController::shutdown_requested = false;
-
     void UiController::run() {
         boost::asio::post(io_, [this]() {
-            std::signal(SIGINT, UiController::handle_sigint);
-
             std::string line;
-            while (std::getline(std::cin, line) && !shutdown_requested.load()) {
+            while (std::getline(std::cin, line)) {
                 boost::asio::post(io_, [this, line]() {
                     std::istringstream iss(line);
                     std::string        command;

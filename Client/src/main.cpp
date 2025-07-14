@@ -28,16 +28,21 @@ int main() try {
         client_transport->shutdown();
     };
 
-    boost::asio::signal_set signals(io, SIGINT, SIGTERM, SIGHUP);
-    signals.async_wait(
-        [&](const boost::system::error_code&, int signal_number) {
-            fmt::println(" Received signal {}, stopping client", signal_number);
+    auto signals =
+        std::make_shared<boost::asio::signal_set>(io, SIGINT, SIGTERM, SIGHUP);
+    signals->async_wait([&ui, signals](const boost::system::error_code& ec,
+                                       int signal_number) {
+        if (!ec) {
+            fmt::println("Received signal {}, stopping client", signal_number);
             ui.stopClient();
-        });
-
+            ui.onCloseClientTransport();
+            std::exit(0);
+        } else {
+            fmt::println(stderr, "Signal handler error: {}", ec.message());
+        }
+    });
     ui.run();
     client_transport->start();
-
     std::vector<std::thread> threads;
     for (int i = 0; i < 2; ++i) {
         threads.emplace_back([&io]() { io.run(); });
