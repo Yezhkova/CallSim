@@ -19,16 +19,32 @@ target_include_directories(client
 target_link_libraries(client
     PRIVATE client_lib 
 )
+find_package(Protobuf REQUIRED)
 
 enable_testing()
-find_package(GTest REQUIRED)
 
-add_executable(client_tests
-    test/ClientTest.cpp
+set(TEST_SOURCES
+    test/connectedStateTest.cpp
+    test/registeredStateTest.cpp
+    # test/callingStateTest.cpp
+    # test/answeringStateTest.cpp
+    src/clientFsm.cpp
 )
-target_link_libraries(client_tests
-    PRIVATE client_lib
-            GTest::GTest
-            GTest::Main
+
+add_executable(client_unit_tests
+    ${TEST_SOURCES}
+    test/mockStateMachine.h
+    ../proto/message.pb.cc
 )
-add_test(NAME ClientTest COMMAND client_tests)
+
+target_include_directories(client_unit_tests
+    PUBLIC inc ${CMAKE_SOURCE_DIR}/proto
+)
+target_link_libraries(client_unit_tests
+    GTest::gmock
+    GTest::gtest_main
+    protobuf::libprotobuf
+    fmt::fmt
+)
+include(GoogleTest)
+gtest_discover_tests(client_unit_tests)
