@@ -132,13 +132,13 @@ bool Session::callClient(const std::string& sender,
 
         receiver_it->timer_->expires_after(std::chrono::seconds(6));
         receiver_it->timer_->async_wait(
-            [receiver_it](const boost::system::error_code& ec) {
+            [receiver_it, receiver](const boost::system::error_code& ec) {
                 if (ec) {
                     fmt::println("'Answer' timer: {}", ec.message());
                     return;
                 }
                 fmt::println("Timeout reached, automatic Reject emitted.");
-                receiver_it->nextState(MessageBuilder::rejectQuery());
+                receiver_it->nextState(MessageBuilder::rejectQuery(receiver));
             });
         return true;
     }
@@ -166,9 +166,8 @@ boost::asio::io_context& Session::getContext() const {
     return getServer()->getContext();
 };
 
-std::shared_ptr<boost::asio::steady_timer> Session::getTimer(
-    const std::string& name) const {
-    return name.empty() ? timer_ : getServer()->getSession(name)->timer_;
+std::shared_ptr<boost::asio::steady_timer> Session::getTimer() const {
+    return timer_;
 }
 
 void Session::close() {

@@ -36,10 +36,9 @@ namespace ses {
         virtual void sendMessageToSubscriberClient(const std::string& name,
                                                    const Message&     msg) = 0;
 
-        virtual std::string              getEndpoint() const = 0;
-        virtual boost::asio::io_context& getContext() const  = 0;
-        virtual std::shared_ptr<boost::asio::steady_timer> getTimer(
-            const std::string& name = "") const = 0;
+        virtual std::string              getEndpoint() const                = 0;
+        virtual boost::asio::io_context& getContext() const                 = 0;
+        virtual std::shared_ptr<boost::asio::steady_timer> getTimer() const = 0;
 
         virtual void close() = 0;
     };
@@ -134,6 +133,7 @@ namespace ses {
                                               StateMachine&             fsm,
                                               const std::string&        peer) {
             fmt::println("{} -> Talking", session->getEndpoint());
+            // TODO : here you can move and return nullptr instead of creating new state
             return std::make_unique<TalkingState>(session, fsm, peer);
         }
     };
