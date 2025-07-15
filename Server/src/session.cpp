@@ -134,7 +134,7 @@ bool Session::callClient(const std::string& sender,
     if (receiver_it && receiver_it != shared_from_this()) {
         receiver_it->nextState(MessageBuilder::answerQuery(sender, receiver));
 
-        receiver_it->timer_->expires_after(std::chrono::seconds(10));
+        receiver_it->timer_->expires_after(std::chrono::seconds(13));
         receiver_it->timer_->async_wait(
             [receiver_it, receiver](const boost::system::error_code& ec) {
                 if (ec) {

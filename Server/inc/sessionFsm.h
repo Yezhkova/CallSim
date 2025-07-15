@@ -130,10 +130,9 @@ namespace ses {
         static std::unique_ptr<IState> create(std::shared_ptr<ISession> session,
                                               StateMachine&             fsm,
                                               const std::string&        peer,
-                                              bool firstTime) {
+                                              bool firstTime = true) {
             if (firstTime) {
                 fmt::println("{} -> Talking", session->getData());
-                return std::move(fsm.state_);
             }
             // TODO : here you can move and return nullptr instead of creating
             // new state

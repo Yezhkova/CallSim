@@ -1,5 +1,6 @@
 #pragma once
 
+#include <fmt/chrono.h>
 #include <fmt/core.h>
 
 #include "message.pb.h"
@@ -48,14 +49,11 @@ class MessageBuilder {
         return MessageBuilder().type(Exit).from(sender).build();
     }
 
-    static Message registrationConfirmed(const std::string& login = "") {
-        std::string payload =
-            login.empty() ? ""
-                          : fmt::format("'{}' registered successfully", login);
+    static Message registrationConfirmed(const std::string& login) {
         return MessageBuilder()
             .type(Registered)
             .to(login)
-            .payload(payload)
+            .payload(fmt::format("'{}' registered successfully", login))
             .build();
     }
     static Message registrationDenied(const std::string& login) {
@@ -185,9 +183,7 @@ template <> struct fmt::formatter<Message> {
         if (!result.empty()) {
             std::time_t t  = static_cast<std::time_t>(msg.timestamp() / 1000);
             std::tm     tm = *std::localtime(&t);
-            char        buf[20];
-            std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &tm);
-            result = std::string(buf) + result;
+            result         = fmt::format("{:%Y-%m-%d %H:%M:%S}", tm) + result;
         }
 
         return fmt::format_to(ctx.out(), "{}", result);
