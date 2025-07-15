@@ -20,7 +20,7 @@ class ConnectedServerStateTest : public ::testing::Test {
 
     void SetUp() override {
         session = std::make_shared<StrictMock<MockSession>>();
-        ON_CALL(*session, getEndpoint())
+        ON_CALL(*session, getData())
             .WillByDefault(Return("127.0.0.1:1111"));
         state = std::make_unique<ConnectedState>(session, fsm);
     }
@@ -35,7 +35,7 @@ class ConnectedServerStateTest : public ::testing::Test {
 
 TEST_F(ConnectedServerStateTest, RegisterSuccessTransitionsToRegistered) {
     EXPECT_CALL(*session, registerClient("alice")).WillOnce(Return(true));
-    EXPECT_CALL(*session, getEndpoint()).Times(2);
+    EXPECT_CALL(*session, getData()).Times(2);
 
     Message msg  = makeMessage(MessageType::Register, "alice");
     auto    next = state->transition(msg);
@@ -46,7 +46,7 @@ TEST_F(ConnectedServerStateTest, RegisterSuccessTransitionsToRegistered) {
 
 TEST_F(ConnectedServerStateTest, RegisterFailsStaysInConnected) {
     EXPECT_CALL(*session, registerClient("bob")).WillOnce(Return(false));
-    EXPECT_CALL(*session, getEndpoint()).Times(2);
+    EXPECT_CALL(*session, getData()).Times(2);
 
     Message msg  = makeMessage(MessageType::Register, "bob");
     auto    next = state->transition(msg);
@@ -84,7 +84,7 @@ TEST_F(ConnectedServerStateTest, ThrowsIfSessionExpired) {
 
 TEST_F(ConnectedServerStateTest, RegisterWithEmptyFromUserFails) {
     EXPECT_CALL(*session, registerClient("")).WillOnce(Return(false));
-    EXPECT_CALL(*session, getEndpoint()).Times(2);
+    EXPECT_CALL(*session, getData()).Times(2);
 
     Message msg  = makeMessage(MessageType::Register, "");
     auto    next = state->transition(msg);
@@ -96,7 +96,7 @@ TEST_F(ConnectedServerStateTest, RegisterWithEmptyFromUserFails) {
 TEST_F(ConnectedServerStateTest, RepeatRegisterFromSameUserIsDenied) {
     Message msg = makeMessage(MessageType::Register, "alice");
 
-    EXPECT_CALL(*session, getEndpoint()).Times(2);
+    EXPECT_CALL(*session, getData()).Times(2);
     EXPECT_CALL(*session, registerClient("alice")).WillOnce(Return(true));
 
     auto first_transition = state->transition(msg);
@@ -114,7 +114,7 @@ TEST_F(ConnectedServerStateTest, RepeatRegisterFromSameUserIsDenied) {
         sendMessageToClient(Property(&Message::type, MessageType::Rejected)))
         .Times(1);
 
-    EXPECT_CALL(*session, getEndpoint()).Times(2);
+    EXPECT_CALL(*session, getData()).Times(2);
 
     EXPECT_CALL(*session, registerClient("alice"))
         .WillOnce([&](const std::string& name) {

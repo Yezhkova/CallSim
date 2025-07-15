@@ -18,17 +18,14 @@ void Session::readHeader() {
         [self, body_length](boost::system::error_code ec, std::size_t) {
             if (ec == boost::asio::error::eof ||
                 ec == boost::asio::error::connection_reset) {
-                fmt::println("Client {} disconnected", self->getEndpoint());
+                fmt::println("Client {} disconnected", self->getData());
                 self->nextState(MessageBuilder::exitQuery(self->username_));
-                if (self->isOpen()) {
-                    self->close();
-                }
                 return;
             }
             if (ec) {
                 fmt::println(stderr,
                              "Read header error ({}): {}",
-                             self->getEndpoint(),
+                             self->getData(),
                              ec.message());
                 return;
             }
@@ -47,7 +44,7 @@ void Session::readBody(std::shared_ptr<uint32_t> length) {
         [self](boost::system::error_code ec, std::size_t) {
             if (ec == boost::asio::error::eof ||
                 ec == boost::asio::error::connection_reset) {
-                fmt::println("Client {} disconnected", self->getEndpoint());
+                fmt::println("Client {} disconnected", self->getData());
                 return;
             }
             if (ec) {
@@ -164,9 +161,11 @@ bool Session::deleteClient(const std::string& name) {
     return getServer()->deleteClient(name);
 }
 
-std::string Session::getEndpoint() const {
-    return socket_.remote_endpoint().address().to_string() + ':' +
-           std::to_string(socket_.remote_endpoint().port());
+std::string Session::getData() const {
+    return fmt::format("{}:{} ({})",
+                       socket_.remote_endpoint().address().to_string(),
+                       socket_.remote_endpoint().port(),
+                       username_);
 }
 
 boost::asio::io_context& Session::getContext() const {
@@ -178,7 +177,7 @@ std::shared_ptr<boost::asio::steady_timer> Session::getTimer() const {
 }
 
 void Session::close() {
-    fmt::println("Session::close() : {}", getEndpoint());
+    fmt::println("Session::close() : {}", getData());
     boost::system::error_code ec;
     socket_.shutdown(Tcp::socket::shutdown_receive, ec);
     socket_.close(ec);

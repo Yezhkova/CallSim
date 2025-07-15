@@ -14,7 +14,7 @@ using Tcp = boost::asio::ip::tcp;
 class ClientTransport : public clt::IClientTransport,
                         public std::enable_shared_from_this<ClientTransport> {
    private:
-    boost::asio::io_context& io_context_;  // TODO: do i need this?
+    boost::asio::io_context& io_context_;
     Tcp::socket              socket_;
     Tcp::endpoint            endpoint_;
 

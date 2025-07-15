@@ -51,9 +51,7 @@ namespace clt {
     }
 
     void UiController::stopClient() {
-        // if (!username_.empty()) {
         onMessageSend(MessageBuilder::exitQuery(username_));
-        // }
         onCloseClientTransport();
     }
 

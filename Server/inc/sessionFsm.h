@@ -36,7 +36,7 @@ namespace ses {
         virtual void sendMessageToSubscriberClient(const std::string& name,
                                                    const Message&     msg) = 0;
 
-        virtual std::string              getEndpoint() const                = 0;
+        virtual std::string              getData() const                    = 0;
         virtual boost::asio::io_context& getContext() const                 = 0;
         virtual std::shared_ptr<boost::asio::steady_timer> getTimer() const = 0;
 
@@ -69,7 +69,7 @@ namespace ses {
 
         static std::unique_ptr<IState> create(std::shared_ptr<ISession> session,
                                               StateMachine&             fsm) {
-            fmt::println("{} -> Connected", session->getEndpoint());
+            fmt::println("{} -> Connected", session->getData());
             return std::make_unique<ConnectedState>(session, fsm);
         }
     };
@@ -82,7 +82,7 @@ namespace ses {
 
         static std::unique_ptr<IState> create(std::shared_ptr<ISession> session,
                                               StateMachine&             fsm) {
-            fmt::println("{} -> Registered", session->getEndpoint());
+            fmt::println("{} -> Registered", session->getData());
             return std::make_unique<RegisteredState>(session, fsm);
         }
     };
@@ -98,7 +98,7 @@ namespace ses {
         static std::unique_ptr<IState> create(std::shared_ptr<ISession> session,
                                               StateMachine&             fsm,
                                               const std::string&        peer) {
-            fmt::println("{} -> Calling", session->getEndpoint());
+            fmt::println("{} -> Calling", session->getData());
             return std::make_unique<CallingState>(session, fsm, peer);
         }
     };
@@ -114,7 +114,7 @@ namespace ses {
         static std::unique_ptr<IState> create(std::shared_ptr<ISession> session,
                                               StateMachine&             fsm,
                                               const std::string&        peer) {
-            fmt::println("{} -> Answering", session->getEndpoint());
+            fmt::println("{} -> Answering", session->getData());
             return std::make_unique<AnsweringState>(session, fsm, peer);
         }
     };
@@ -129,8 +129,12 @@ namespace ses {
 
         static std::unique_ptr<IState> create(std::shared_ptr<ISession> session,
                                               StateMachine&             fsm,
-                                              const std::string&        peer) {
-            fmt::println("{} -> Talking", session->getEndpoint());
+                                              const std::string&        peer,
+                                              bool firstTime) {
+            if (firstTime) {
+                fmt::println("{} -> Talking", session->getData());
+                return std::move(fsm.state_);
+            }
             // TODO : here you can move and return nullptr instead of creating
             // new state
             return std::make_unique<TalkingState>(session, fsm, peer);

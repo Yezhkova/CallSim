@@ -49,10 +49,10 @@ class Session : public ses::ISession,
                     const std::string& receiver) override;
     bool deleteClient(const std::string& name) override;
 
-    std::string                                getEndpoint() const override;
+    std::string                                getData() const override;
     boost::asio::io_context&                   getContext() const override;
     std::shared_ptr<boost::asio::steady_timer> getTimer() const override;
 
-    bool               isOpen() { return socket_.is_open(); }
+    bool isOpen() { return socket_.is_open(); }
     ~Session();
 };

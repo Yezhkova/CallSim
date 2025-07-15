@@ -32,7 +32,7 @@ class RegisteredServerStateTest : public ::testing::Test {
 
 TEST_F(RegisteredServerStateTest, CallAcceptedTransitionsToCallingState) {
     auto msg = createMessage(MessageType::Call);
-    EXPECT_CALL(*mockSession, getEndpoint())
+    EXPECT_CALL(*mockSession, getData())
         .WillRepeatedly(Return("127.0.0.1:12345"));
     EXPECT_CALL(*mockSession, callClient("alice", "bob"))
         .WillOnce(Return(true));
@@ -47,7 +47,7 @@ TEST_F(RegisteredServerStateTest, CallAcceptedTransitionsToCallingState) {
 
 TEST_F(RegisteredServerStateTest, CallRejectedStaysInRegisteredState) {
     auto msg = createMessage(MessageType::Call);
-    EXPECT_CALL(*mockSession, getEndpoint())
+    EXPECT_CALL(*mockSession, getData())
         .WillRepeatedly(Return("127.0.0.1:12345"));
     EXPECT_CALL(*mockSession, callClient(_, _)).WillOnce(Return(false));
     EXPECT_CALL(*mockSession, sendMessageToClient(_));
@@ -61,7 +61,7 @@ TEST_F(RegisteredServerStateTest, CallRejectedStaysInRegisteredState) {
 
 TEST_F(RegisteredServerStateTest, AnswerMessageTransitionsToAnsweringState) {
     auto msg = createMessage(MessageType::Answer);
-    EXPECT_CALL(*mockSession, getEndpoint())
+    EXPECT_CALL(*mockSession, getData())
         .WillRepeatedly(Return("127.0.0.1:12345"));
     EXPECT_CALL(*mockSession, sendMessageToClient(_));
 
@@ -74,7 +74,7 @@ TEST_F(RegisteredServerStateTest, AnswerMessageTransitionsToAnsweringState) {
 
 TEST_F(RegisteredServerStateTest, ExitDeletesClientAndReturnsNullptr) {
     auto msg = createMessage(MessageType::Exit);
-    EXPECT_CALL(*mockSession, getEndpoint())
+    EXPECT_CALL(*mockSession, getData())
         .WillOnce(::testing::Return("127.0.0.1:12345"));
     EXPECT_CALL(*mockSession, deleteClient("alice")).Times(1);
 
@@ -86,7 +86,7 @@ TEST_F(RegisteredServerStateTest, ExitDeletesClientAndReturnsNullptr) {
 
 TEST_F(RegisteredServerStateTest, UnknownMessageReturnsNullptr) {
     auto msg = createMessage(MessageType::Text);
-    EXPECT_CALL(*mockSession, getEndpoint())
+    EXPECT_CALL(*mockSession, getData())
         .WillOnce(::testing::Return("127.0.0.1:12345"));
 
     auto state = RegisteredState::create(mockSession, fsm);
@@ -111,7 +111,7 @@ TEST_F(RegisteredServerStateTest, CallWithEmptyToUserIsRejected) {
     Message msg = createMessage(MessageType::Call);
     msg.set_to_user("");
 
-    EXPECT_CALL(*mockSession, getEndpoint())
+    EXPECT_CALL(*mockSession, getData())
         .WillRepeatedly(Return("127.0.0.1:12345"));
     EXPECT_CALL(*mockSession, callClient(_, _)).WillOnce(Return(false));
     EXPECT_CALL(*mockSession, sendMessageToClient(_));
@@ -129,7 +129,7 @@ using ::testing::Truly;
 TEST_F(RegisteredServerStateTest, SendsCallConfirmedWithCorrectToUser) {
     auto msg = createMessage(MessageType::Call, "alice", "bob");
 
-    EXPECT_CALL(*mockSession, getEndpoint())
+    EXPECT_CALL(*mockSession, getData())
         .WillRepeatedly(Return("127.0.0.1:12345"));
     EXPECT_CALL(*mockSession, callClient("alice", "bob"))
         .WillOnce(Return(true));
@@ -147,7 +147,7 @@ TEST_F(RegisteredServerStateTest, MultipleTransitionsHandleCorrectly) {
     auto msg1 = createMessage(MessageType::Call, "alice", "bob");
     auto msg2 = createMessage(MessageType::Answer, "bob", "alice");
 
-    EXPECT_CALL(*mockSession, getEndpoint())
+    EXPECT_CALL(*mockSession, getData())
         .WillRepeatedly(Return("127.0.0.1:12345"));
     EXPECT_CALL(*mockSession, callClient("alice", "bob"))
         .WillOnce(Return(true));

@@ -36,17 +36,6 @@ int main() try {
             google::protobuf::ShutdownProtobufLibrary();
         }};
 
-    // boost::asio::signal_set signals(io, SIGINT, SIGTERM, SIGHUP);
-    // signals.async_wait([&](const boost::system::error_code& ec,
-    //                                    int signal_number) {
-    //     if (!ec) {
-    //         fmt::println("Received signal {}, stopping client", signal_number);
-    //         ui.stopClient();
-    //     } else {
-    //         fmt::println(stderr, "Signal handler error: {}", ec.message());
-    //     }
-    // });
-
     ui.run();
     client_transport->start();
 
@@ -55,6 +44,7 @@ int main() try {
         threads.emplace_back([&io]() { io.run(); });
     }
     for (auto& th : threads) th.join();
+    fmt::print("leaving main\n");
     return 0;
 } catch (const std::exception& e) {
     fmt::println(stderr, "ClientTransport exception: {}", e.what());
