@@ -78,7 +78,6 @@ namespace clt {
         switch (msg.type()) {
             case Text:
                 fmt::println("<- Talking");
-                // TODO : cout payload here
                 return TalkingState::create(fsm_);
                 break;
             case Ended:

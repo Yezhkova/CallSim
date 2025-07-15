@@ -133,7 +133,6 @@ namespace ses {
                                               StateMachine&             fsm,
                                               const std::string&        peer) {
             fmt::println("{} -> Talking", session->getEndpoint());
-            // TODO : here you can move and return nullptr instead of creating new state
             return std::make_unique<TalkingState>(session, fsm, peer);
         }
     };
