@@ -83,7 +83,7 @@ namespace clt {
 
         StateMachine() : state_{ConnectedState::create(*this)} {}
 
-        std::function<void(const std::string& login)> onRegister;
+        std::function<void(const std::string& login)> onRegistered;
         void                                          next(const Message& msg);
     };
 

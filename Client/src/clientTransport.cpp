@@ -29,6 +29,8 @@ void ClientTransport::readHeader() {
             if (!ec) {
                 *body_length = ntohl(*body_length);
                 self->readBody(*body_length);
+            } else {
+                fmt::println(stderr, "Client parsing error: {}", ec.what());
             }
         });
 }
@@ -80,7 +82,7 @@ void ClientTransport::sendMessageToServer(const Message& msg_proto) {
 void ClientTransport::shutdown() {
     fmt::println("ClientTransport::shutdown()");
     boost::system::error_code ec;
-    socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
+    socket_.shutdown(Tcp::socket::shutdown_receive, ec);
     socket_.close(ec);
-    io_context_.stop();  // TODO: this can be redundant
+    io_context_.stop();
 };

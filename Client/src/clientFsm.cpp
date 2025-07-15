@@ -17,7 +17,7 @@ namespace clt {
                 break;
             case Registered:
                 fmt::println("<- Connected");
-                fsm_.onRegister(msg.to_user());
+                fsm_.onRegistered(msg.to_user());
                 return RegisteredState::create(fsm_);
                 break;
             default:

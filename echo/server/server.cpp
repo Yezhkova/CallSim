@@ -62,9 +62,9 @@ class ServerSession : public std::enable_shared_from_this<ServerSession> {
                 if (ec == boost::asio::error::eof ||
                     ec == boost::asio::error::connection_reset) {
                     auto ep = self->socket_.remote_endpoint();
-                    fmt::print("Client {}:{} disconnected\n",
-                               ep.address().to_string(),
-                               ep.port());
+                    fmt::println("Client {}:{} disconnected",
+                                 ep.address().to_string(),
+                                 ep.port());
                     return;
                 }
                 if (ec) {

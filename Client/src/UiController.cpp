@@ -6,7 +6,7 @@ namespace clt {
     void UiController::run() {
         boost::asio::post(io_, [this]() {
             std::string line;
-            while (std::getline(std::cin, line)) {
+            while (std::getline(std::cin, line) && this->active_) {
                 boost::asio::post(io_, [this, line]() {
                     std::istringstream iss(line);
                     std::string        command;
@@ -20,7 +20,7 @@ namespace clt {
 
                     if (command == "exit") {
                         stopClient();
-                        std::exit(0);
+                        this->active_ = false;
                     } else if (command == "register") {
                         std::string login;
                         iss >> login;
@@ -51,9 +51,9 @@ namespace clt {
     }
 
     void UiController::stopClient() {
-        if (!username_.empty()) {
-            onMessageSend(MessageBuilder::exitQuery(username_));
-        }
+        // if (!username_.empty()) {
+        onMessageSend(MessageBuilder::exitQuery(username_));
+        // }
         onCloseClientTransport();
     }
 

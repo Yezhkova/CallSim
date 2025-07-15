@@ -2,6 +2,11 @@
 
 #include "server.h"
 
+Session::~Session() {
+    fmt::println("Session destroyed. Left Online: {} client(s)",
+                 getServer()->getClients().size());
+};
+
 void Session::readHeader() {
     auto self        = shared_from_this();
     auto body_length = std::make_shared<uint32_t>(0);
@@ -14,6 +19,10 @@ void Session::readHeader() {
             if (ec == boost::asio::error::eof ||
                 ec == boost::asio::error::connection_reset) {
                 fmt::println("Client {} disconnected", self->getEndpoint());
+                self->nextState(MessageBuilder::exitQuery(self->username_));
+                if (self->isOpen()) {
+                    self->close();
+                }
                 return;
             }
             if (ec) {
@@ -38,8 +47,7 @@ void Session::readBody(std::shared_ptr<uint32_t> length) {
         [self](boost::system::error_code ec, std::size_t) {
             if (ec == boost::asio::error::eof ||
                 ec == boost::asio::error::connection_reset) {
-                fmt::print("Client {} disconnected\n", self->getEndpoint());
-                fmt::println("{}", ec.what());
+                fmt::println("Client {} disconnected", self->getEndpoint());
                 return;
             }
             if (ec) {
@@ -53,12 +61,10 @@ void Session::readBody(std::shared_ptr<uint32_t> length) {
                 try {
                     self->nextState(msg);
                 } catch (const InvalidTransitionException& ex) {
-                    if (msg.type() != Exit) {
-                        self->sendMessageToClient(
-                            MessageBuilder::operationDenied(msg.type()));
-                    }
+                    self->sendMessageToClient(
+                        MessageBuilder::operationDenied(msg.type()));
                 } catch (const std::exception& ex) {
-                    fmt::println(stderr, "{}", ex.what());
+                    fmt::println(stderr, "[Server] {}", ex.what());
                     self->close();
                 }
                 if (self->isOpen()) {
@@ -121,6 +127,7 @@ bool Session::registerClient(const std::string& name) {
     }
     getServer()->save(name, shared_from_this());
     sendMessageToClient(MessageBuilder::registrationConfirmed(name));
+    username_ = name;
     return true;
 }
 
@@ -130,7 +137,7 @@ bool Session::callClient(const std::string& sender,
     if (receiver_it && receiver_it != shared_from_this()) {
         receiver_it->nextState(MessageBuilder::answerQuery(sender, receiver));
 
-        receiver_it->timer_->expires_after(std::chrono::seconds(6));
+        receiver_it->timer_->expires_after(std::chrono::seconds(10));
         receiver_it->timer_->async_wait(
             [receiver_it, receiver](const boost::system::error_code& ec) {
                 if (ec) {
@@ -171,8 +178,8 @@ std::shared_ptr<boost::asio::steady_timer> Session::getTimer() const {
 }
 
 void Session::close() {
-    fmt::print("Client {} disconnected\n", getEndpoint());
+    fmt::println("Session::close() : {}", getEndpoint());
     boost::system::error_code ec;
-    socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
+    socket_.shutdown(Tcp::socket::shutdown_receive, ec);
     socket_.close(ec);
 }

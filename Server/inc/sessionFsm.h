@@ -47,14 +47,18 @@ namespace ses {
        protected:
         std::weak_ptr<ISession> session_;
         StateMachine&           fsm_;
+        std::string             peer_;
 
        public:
-        IState(std::shared_ptr<ISession> session, StateMachine& fsm)
-          : session_{session}, fsm_(fsm) {}
+        IState(std::shared_ptr<ISession> session,
+               StateMachine&             fsm,
+               const std::string&        peer = "")
+          : session_{session}, fsm_(fsm), peer_(peer) {}
         virtual ~IState()                                          = default;
         virtual std::unique_ptr<IState> transition(const Message&) = 0;
 
         std::shared_ptr<ISession> getSession() { return session_.lock(); }
+        const std::string&        getPeer() const { return peer_; }
     };
 
     struct ConnectedState : public IState {
@@ -84,12 +88,10 @@ namespace ses {
     };
 
     struct CallingState : public IState {
-        std::string peer_;
-
         CallingState(std::shared_ptr<ISession> session,
                      StateMachine&             fsm,
                      const std::string&        peer)
-          : IState(session, fsm), peer_(peer) {}
+          : IState(session, fsm, peer) {}
 
         std::unique_ptr<IState> transition(const Message& msg) override;
 
@@ -102,12 +104,10 @@ namespace ses {
     };
 
     struct AnsweringState : public IState {
-        std::string peer_;
-
         AnsweringState(std::shared_ptr<ISession> session,
                        StateMachine&             fsm,
                        const std::string&        peer)
-          : IState(session, fsm), peer_(peer) {}
+          : IState(session, fsm, peer) {}
 
         std::unique_ptr<IState> transition(const Message& msg) override;
 
@@ -120,12 +120,10 @@ namespace ses {
     };
 
     struct TalkingState : public IState {
-        std::string peer_;
-
         TalkingState(std::shared_ptr<ISession> session,
                      StateMachine&             fsm,
                      const std::string&        peer)
-          : IState(session, fsm), peer_(peer) {}
+          : IState(session, fsm, peer) {}
 
         std::unique_ptr<IState> transition(const Message& msg) override;
 
@@ -133,7 +131,8 @@ namespace ses {
                                               StateMachine&             fsm,
                                               const std::string&        peer) {
             fmt::println("{} -> Talking", session->getEndpoint());
-            // TODO : here you can move and return nullptr instead of creating new state
+            // TODO : here you can move and return nullptr instead of creating
+            // new state
             return std::make_unique<TalkingState>(session, fsm, peer);
         }
     };

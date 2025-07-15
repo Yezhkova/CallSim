@@ -9,7 +9,7 @@ class MockStateMachine : public clt::StateMachine {
    public:
     MOCK_METHOD(void, onRegisterMock, (const std::string&), ());
     MockStateMachine() {
-        onRegister = [this](const std::string& login) {
+        onRegistered = [this](const std::string& login) {
             onRegisterMock(login);
         };
     }

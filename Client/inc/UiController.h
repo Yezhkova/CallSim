@@ -12,6 +12,7 @@ namespace clt {
        public:
         std::function<void(const Message& msg)> onMessageSend;
         std::function<void()>                   onCloseClientTransport;
+        bool                                    active_ = true;
 
        private:
         boost::asio::io_context& io_;

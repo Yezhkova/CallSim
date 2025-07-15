@@ -7,7 +7,7 @@ namespace ses {
     void StateMachine::next(const Message& msg) {
         if (auto st = state_->transition(msg); st) {
             state_ = std::move(st);
-        } else {
+        } else if (msg.type() != Exit) {
             throw InvalidTransitionException(
                 fmt::format("{}: invalid transition to '{}'",
                             state_->getSession()->getEndpoint(),
@@ -30,6 +30,7 @@ namespace ses {
                 }
                 break;
             case Exit:
+                fmt::println("{} <- Connected", session->getEndpoint());
                 session->close();
                 return std::unique_ptr<IState>{};
                 break;
@@ -63,7 +64,9 @@ namespace ses {
                 return AnsweringState::create(session, fsm_, msg.from_user());
                 break;
             case Exit:
+                fmt::println("{} <- Registered", session->getEndpoint());
                 session->deleteClient(msg.from_user());
+                session->close();
                 return std::unique_ptr<IState>{};
                 break;
             default:
@@ -96,7 +99,6 @@ namespace ses {
                 session->sendMessageToSubscriberServer(
                     peer_,
                     MessageBuilder::rejectQuery());
-
                 session->sendMessageToClient(MessageBuilder::talkDenied());
                 return RegisteredState::create(session, fsm_);
                 break;
@@ -106,13 +108,14 @@ namespace ses {
                     peer_,
                     MessageBuilder::rejectQuery());
                 session->deleteClient(msg.from_user());
+                session->close();
                 return std::unique_ptr<IState>{};
                 break;
             default:
                 return std::unique_ptr<IState>{};
                 break;
         }
-    };
+    }
 
     std::unique_ptr<IState> AnsweringState::transition(const Message& msg) {
         auto session = session_.lock();
@@ -146,18 +149,20 @@ namespace ses {
                 return RegisteredState::create(session, fsm_);
                 break;
             case Exit:  // from myself
+                fmt::println("{} <- Answering", session->getEndpoint());
                 session->getTimer()->cancel();
                 session->sendMessageToSubscriberServer(
                     peer_,
                     MessageBuilder::talkDenied());
                 session->deleteClient(msg.from_user());
+                session->close();
                 return std::unique_ptr<IState>{};
                 break;
             default:
                 return std::unique_ptr<IState>{};
                 break;
         }
-    };
+    }
 
     std::unique_ptr<IState> TalkingState::transition(const Message& msg) {
         auto session = session_.lock();
@@ -173,7 +178,9 @@ namespace ses {
                     session->sendMessageToClient(msg);
                 } else {
                     // primary packet - send to peer
-                    session->sendMessageToSubscriberServer(peer_, MessageBuilder::textQuery(msg.payload()));
+                    session->sendMessageToSubscriberServer(
+                        peer_,
+                        MessageBuilder::textQuery(msg.payload()));
                 }
                 return TalkingState::create(session, fsm_, peer_);
                 break;
@@ -185,22 +192,26 @@ namespace ses {
                     session->sendMessageToClient(MessageBuilder::talkEnded());
                 } else {
                     // primary packet - send to peer
-                    session->sendMessageToSubscriberServer(peer_, MessageBuilder::endQuery());
+                    session->sendMessageToSubscriberServer(
+                        peer_,
+                        MessageBuilder::endQuery());
                     session->sendMessageToClient(MessageBuilder::talkEnded());
                 }
                 return RegisteredState::create(session, fsm_);
                 break;
             case Exit:
+                fmt::println("{} <- Talking", session->getEndpoint());
                 session->sendMessageToSubscriberServer(
                     peer_,
                     MessageBuilder::endQuery());
                 session->deleteClient(msg.from_user());
+                session->close();
                 return std::unique_ptr<IState>{};
                 break;
             default:
                 return std::unique_ptr<IState>{};
                 break;
         }
-    };
+    }
 
 }  // namespace ses

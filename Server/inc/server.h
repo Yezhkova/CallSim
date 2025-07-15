@@ -26,6 +26,7 @@ class Server : public std::enable_shared_from_this<Server> {
     bool deleteClient(const std::string& clientLogin);
     std::shared_ptr<Session> getSession(const std::string& name) const;
     boost::asio::io_context& getContext() const { return io_; };
+    const Map& getClients() const { return clients_; };
 
    private:
     void doAccept();
