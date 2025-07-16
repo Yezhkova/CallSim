@@ -3,7 +3,7 @@
 #include "server.h"
 
 Session::~Session() {
-    fmt::println("Session destroyed. Left Online: {} client(s)",
+    fmt::println("Session destroyed. Left Online: {} client(s)\n",
                  getServer()->getClients().size());
 };
 

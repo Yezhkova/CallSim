@@ -43,10 +43,18 @@ class MessageBuilder {
             .build();
     }
     static Message endQuery(const std::string& sender = "") {
-        return MessageBuilder().type(End).from(sender).build();
+        return MessageBuilder()
+            .type(End)
+            .from(sender)
+            .payload("reverting operation")
+            .build();
     }
     static Message exitQuery(const std::string& sender) {
-        return MessageBuilder().type(Exit).from(sender).build();
+        return MessageBuilder()
+            .type(Exit)
+            .from(sender)
+            .payload("exiting")
+            .build();
     }
 
     static Message registrationConfirmed(const std::string& login) {

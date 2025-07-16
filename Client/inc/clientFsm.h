@@ -31,7 +31,7 @@ namespace clt {
         std::unique_ptr<IState> transition(const Message& msg) override;
 
         static std::unique_ptr<IState> create(StateMachine& fsm) {
-            fmt::println("-> Connected");
+            fmt::print(fg(fmt::color::blue), "-> Connected\n");
             return std::make_unique<ConnectedState>(fsm);
         }
     };
@@ -41,7 +41,7 @@ namespace clt {
         std::unique_ptr<IState> transition(const Message& msg) override;
 
         static std::unique_ptr<IState> create(StateMachine& fsm) {
-            fmt::println("-> Registered");
+            fmt::print(fg(fmt::color::green), "-> Registered\n");
             return std::make_unique<RegisteredState>(fsm);
         }
     };
@@ -51,7 +51,7 @@ namespace clt {
         std::unique_ptr<IState> transition(const Message& msg) override;
 
         static std::unique_ptr<IState> create(StateMachine& fsm) {
-            fmt::println("-> Calling");
+            fmt::print(fg(fmt::color::magenta), "-> Calling\n");
             return std::make_unique<CallingState>(fsm);
         }
     };
@@ -61,7 +61,7 @@ namespace clt {
         std::unique_ptr<IState> transition(const Message& msg) override;
 
         static std::unique_ptr<IState> create(StateMachine& fsm) {
-            fmt::println("-> Answering (with timeout)");
+            fmt::print(fg(fmt::color::red), "-> Answering (with timeout)\n");
             return std::make_unique<AnsweringState>(fsm);
         }
     };
@@ -71,7 +71,7 @@ namespace clt {
         std::unique_ptr<IState> transition(const Message& msg) override;
 
         static std::unique_ptr<IState> create(StateMachine& fsm) {
-            fmt::println("-> Talking");
+            fmt::print(fg(fmt::color::chocolate), "-> Talking\n");
             // TODO: maybe move here instead of returning unique_ptr
             return std::make_unique<TalkingState>(fsm);
         }

@@ -22,7 +22,7 @@ namespace ses {
 
         switch (msg.type()) {
             case Register:
-                fmt::println("{} <- Connected", session->getData());
+                fmt::println("{} <- Connected\n", session->getData());
                 if (session->registerClient(msg.from_user())) {
                     return RegisteredState::create(session, fsm_);
                 } else {
@@ -30,7 +30,7 @@ namespace ses {
                 }
                 break;
             case Exit:
-                fmt::println("{} <- Connected", session->getData());
+                fmt::println("{} <- Connected\n", session->getData());
                 session->close();
                 return std::unique_ptr<IState>{};
                 break;
@@ -47,7 +47,7 @@ namespace ses {
 
         switch (msg.type()) {
             case Call:
-                fmt::println("{} <- Registered", session->getData());
+                fmt::println("{} <- Registered\n", session->getData());
                 if (session->callClient(msg.from_user(), msg.to_user())) {
                     session->sendMessageToClient(
                         MessageBuilder::callConfirmed(msg.to_user()));
@@ -58,13 +58,13 @@ namespace ses {
                 return RegisteredState::create(session, fsm_);
                 break;
             case Answer:
-                fmt::println("{} <- Registered", session->getData());
+                fmt::println("{} <- Registered\n", session->getData());
                 session->sendMessageToClient(
                     MessageBuilder::answerConfirmed(msg.from_user()));
                 return AnsweringState::create(session, fsm_, msg.from_user());
                 break;
             case Exit:
-                fmt::println("{} <- Registered", session->getData());
+                fmt::println("{} <- Registered\n", session->getData());
                 session->deleteClient(msg.from_user());
                 session->close();
                 return std::unique_ptr<IState>{};
@@ -82,20 +82,20 @@ namespace ses {
 
         switch (msg.type()) {
             case Accepted:  // from peer
-                fmt::println("{} <- Calling", session->getData());
+                fmt::println("{} <- Calling\n", session->getData());
                 session->sendMessageToClient(
                     MessageBuilder::talkConfirmed(msg.from_user(),
                                                   msg.to_user()));
                 return TalkingState::create(session, fsm_, msg.to_user());
                 break;
             case Rejected:  // from peer
-                fmt::println("{} <- Calling", session->getData());
+                fmt::println("{} <- Calling\n", session->getData());
                 session->sendMessageToClient(
                     MessageBuilder::talkDenied(msg.to_user()));
                 return RegisteredState::create(session, fsm_);
                 break;
             case End:  // from myself
-                fmt::println("{} <- Calling", session->getData());
+                fmt::println("{} <- Calling\n", session->getData());
                 session->sendMessageToSubscriberServer(
                     peer_,
                     MessageBuilder::rejectQuery());
@@ -103,7 +103,7 @@ namespace ses {
                 return RegisteredState::create(session, fsm_);
                 break;
             case Exit:  // from myself
-                fmt::println("{} <- Calling", session->getData());
+                fmt::println("{} <- Calling\n", session->getData());
                 session->sendMessageToSubscriberServer(
                     peer_,
                     MessageBuilder::rejectQuery());
@@ -124,7 +124,7 @@ namespace ses {
 
         switch (msg.type()) {
             case Accept:  // from myself
-                fmt::println("{} <- Answering", session->getData());
+                fmt::println("{} <- Answering\n", session->getData());
                 session->getTimer()->cancel();
                 session->sendMessageToSubscriberServer(
                     peer_,
@@ -134,7 +134,7 @@ namespace ses {
                 return TalkingState::create(session, fsm_, peer_);
                 break;
             case Reject:  // from myself OR peer
-                fmt::println("{} <- Answering", session->getData());
+                fmt::println("{} <- Answering\n", session->getData());
                 session->getTimer()->cancel();
                 if (msg.from_user().empty()) {
                     // peer has rejected, without waiting for response
@@ -149,7 +149,7 @@ namespace ses {
                 return RegisteredState::create(session, fsm_);
                 break;
             case Exit:  // from myself
-                fmt::println("{} <- Answering", session->getData());
+                fmt::println("{} <- Answering\n", session->getData());
                 session->getTimer()->cancel();
                 session->sendMessageToSubscriberServer(
                     peer_,
@@ -171,7 +171,7 @@ namespace ses {
 
         switch (msg.type()) {
             case Text:
-                fmt::println("{} <- Talking", session->getData());
+                fmt::println("{} <- Talking\n", session->getData());
 
                 if (msg.from_user().empty()) {
                     // secondary packet - peer processes packet
@@ -185,7 +185,7 @@ namespace ses {
                 return TalkingState::create(session, fsm_, peer_);
                 break;
             case End:
-                fmt::println("{} <- Talking", session->getData());
+                fmt::println("{} <- Talking\n", session->getData());
 
                 if (msg.from_user().empty()) {
                     // secondary packet - peer processes packet
@@ -200,7 +200,7 @@ namespace ses {
                 return RegisteredState::create(session, fsm_);
                 break;
             case Exit:
-                fmt::println("{} <- Talking", session->getData());
+                fmt::println("{} <- Talking\n", session->getData());
                 session->sendMessageToSubscriberServer(
                     peer_,
                     MessageBuilder::endQuery());

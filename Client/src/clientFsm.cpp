@@ -12,11 +12,11 @@ namespace clt {
     std::unique_ptr<IState> ConnectedState::transition(const Message& msg) {
         switch (msg.type()) {
             case Rejected:
-                fmt::println("<- Connected");
+                fmt::print(fg(fmt::color::blue), "<- Connected\n");
                 return ConnectedState::create(fsm_);
                 break;
             case Registered:
-                fmt::println("<- Connected");
+                fmt::print(fg(fmt::color::blue), "<- Connected\n");
                 fsm_.onRegistered(msg.to_user());
                 return RegisteredState::create(fsm_);
                 break;
@@ -29,11 +29,12 @@ namespace clt {
     std::unique_ptr<IState> RegisteredState::transition(const Message& msg) {
         switch (msg.type()) {
             case Calling:
-                fmt::println("<- Registered\nEnter 'end' to stop calling.");
+                fmt::print(fg(fmt::color::green), "<- Registered\n");
+                fmt::println("Enter 'end' to stop calling.");
                 return CallingState::create(fsm_);
                 break;
             case Answering:
-                fmt::println("<- Registered");
+                fmt::print(fg(fmt::color::green), "<- Registered\n");
                 return AnsweringState::create(fsm_);
                 break;
             default:
@@ -45,11 +46,11 @@ namespace clt {
     std::unique_ptr<IState> CallingState::transition(const Message& msg) {
         switch (msg.type()) {
             case Rejected:
-                fmt::println("<- Calling");
+                fmt::print(fg(fmt::color::magenta), "<- Calling\n");
                 return RegisteredState::create(fsm_);
                 break;
             case Accepted:
-                fmt::println("<- Calling");
+                fmt::print(fg(fmt::color::magenta), "<- Calling\n");
                 return TalkingState::create(fsm_);
                 break;
             default:
@@ -61,11 +62,11 @@ namespace clt {
     std::unique_ptr<IState> AnsweringState::transition(const Message& msg) {
         switch (msg.type()) {
             case Rejected:
-                fmt::println("<- Answering");
+                fmt::print(fg(fmt::color::red), "<- Answering\n");
                 return RegisteredState::create(fsm_);
                 break;
             case Accepted:
-                fmt::println("<- Answering");
+                fmt::print(fg(fmt::color::red), "<- Answering\n");
                 return TalkingState::create(fsm_);
                 break;
             default:
@@ -77,11 +78,11 @@ namespace clt {
     std::unique_ptr<IState> TalkingState::transition(const Message& msg) {
         switch (msg.type()) {
             case Text:
-                fmt::println("<- Talking");
+                fmt::print(fg(fmt::color::chocolate), "<- Talking\n");
                 return TalkingState::create(fsm_);
                 break;
             case Ended:
-                fmt::println("<- Talking");
+                fmt::print(fg(fmt::color::chocolate), "<- Talking\n");
                 return RegisteredState::create(fsm_);
                 break;
             default:
