@@ -12,8 +12,9 @@ namespace clt {
     std::unique_ptr<IState> ConnectedState::transition(const Message& msg) {
         switch (msg.type()) {
             case Rejected:
-                fmt::print(fg(fmt::color::blue), "<- Connected\n");
-                return ConnectedState::create(fsm_);
+                // fmt::print(fg(fmt::color::blue), "<- Connected\n");
+                // return ConnectedState::create(fsm_);
+                return std::unique_ptr<IState>{};
                 break;
             case Registered:
                 fmt::print(fg(fmt::color::blue), "<- Connected\n");
@@ -21,6 +22,9 @@ namespace clt {
                 return RegisteredState::create(fsm_);
                 break;
             default:
+                // fmt::print(fg(fmt::color::red),
+                //            "Invalid transition to '{}'",
+                //            magic_enum::enum_name(msg.type()));
                 return std::unique_ptr<IState>{};
                 break;
         }
@@ -38,6 +42,9 @@ namespace clt {
                 return AnsweringState::create(fsm_);
                 break;
             default:
+                // fmt::print(fg(fmt::color::red),
+                //            "Invalid transition to '{}'",
+                //            magic_enum::enum_name(msg.type()));
                 return std::unique_ptr<IState>{};
                 break;
         }
@@ -54,6 +61,9 @@ namespace clt {
                 return TalkingState::create(fsm_);
                 break;
             default:
+                // fmt::print(fg(fmt::color::red),
+                //            "Invalid transition to '{}'",
+                //            magic_enum::enum_name(msg.type()));
                 return std::unique_ptr<IState>{};
                 break;
         }
@@ -62,14 +72,17 @@ namespace clt {
     std::unique_ptr<IState> AnsweringState::transition(const Message& msg) {
         switch (msg.type()) {
             case Rejected:
-                fmt::print(fg(fmt::color::red), "<- Answering\n");
+                fmt::print(fg(fmt::color::purple), "<- Answering\n");
                 return RegisteredState::create(fsm_);
                 break;
             case Accepted:
-                fmt::print(fg(fmt::color::red), "<- Answering\n");
+                fmt::print(fg(fmt::color::purple), "<- Answering\n");
                 return TalkingState::create(fsm_);
                 break;
             default:
+                // fmt::print(fg(fmt::color::red),
+                //            "Invalid transition to '{}'",
+                //            magic_enum::enum_name(msg.type()));
                 return std::unique_ptr<IState>{};
                 break;
         }
@@ -78,8 +91,9 @@ namespace clt {
     std::unique_ptr<IState> TalkingState::transition(const Message& msg) {
         switch (msg.type()) {
             case Text:
-                fmt::print(fg(fmt::color::chocolate), "<- Talking\n");
-                return TalkingState::create(fsm_);
+                // fmt::print(fg(fmt::color::chocolate), "<- Talking\n");
+                // return TalkingState::create(fsm_);
+                return std::unique_ptr<IState>{};
                 break;
             case Ended:
                 fmt::print(fg(fmt::color::chocolate), "<- Talking\n");

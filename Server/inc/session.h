@@ -36,7 +36,8 @@ class Session : public ses::ISession,
     void readBody(std::shared_ptr<uint32_t> length);
 
     std::shared_ptr<Server> getServer() const;
-    void                    nextState(const Message& msg) { fsm_.next(msg); }
+    // void                    nextState(const Message& msg) { fsm_.next(msg); }
+    bool nextState(const Message& msg) { return fsm_.next(msg); }
 
     void sendMessageToClient(const Message& msg) override;
     void sendMessageToSubscriberServer(const std::string& name,

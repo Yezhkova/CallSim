@@ -57,10 +57,16 @@ void Session::readBody(std::shared_ptr<uint32_t> length) {
                 fmt::println("{}", msg);
                 try {
                     self->nextState(msg);
-                } catch (const InvalidTransitionException& ex) {
-                    self->sendMessageToClient(
-                        MessageBuilder::operationDenied(msg.type()));
-                } catch (const std::exception& ex) {
+                    // if (!self->nextState(msg) && msg.type() != Exit) {
+                    //     self->sendMessageToClient(
+                    //         MessageBuilder::operationDenied(msg.type()));
+                    // }
+                }
+                // catch (const InvalidTransitionException& ex) {
+                //     self->sendMessageToClient(
+                //         MessageBuilder::operationDenied(msg.type()));
+                // }
+                catch (const std::exception& ex) {
                     fmt::println(stderr, "[Server] {}", ex.what());
                     self->close();
                 }
@@ -132,7 +138,10 @@ bool Session::callClient(const std::string& sender,
                          const std::string& receiver) {
     auto receiver_it = getServer()->getSession(receiver);
     if (receiver_it && receiver_it != shared_from_this()) {
-        receiver_it->nextState(MessageBuilder::answerQuery(sender, receiver));
+        if (!receiver_it->nextState(
+                MessageBuilder::answerQuery(sender, receiver))) {
+            return false;
+        }
 
         receiver_it->timer_->expires_after(std::chrono::seconds(13));
         receiver_it->timer_->async_wait(

@@ -61,7 +61,7 @@ namespace clt {
         std::unique_ptr<IState> transition(const Message& msg) override;
 
         static std::unique_ptr<IState> create(StateMachine& fsm) {
-            fmt::print(fg(fmt::color::red), "-> Answering (with timeout)\n");
+            fmt::print(fg(fmt::color::purple), "-> Answering (with timeout)\n");
             return std::make_unique<AnsweringState>(fsm);
         }
     };

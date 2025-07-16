@@ -4,14 +4,24 @@
 
 namespace ses {
 
-    void StateMachine::next(const Message& msg) {
+    // void StateMachine::next(const Message& msg) {
+    //     if (auto st = state_->transition(msg); st) {
+    //         state_ = std::move(st);
+    //     } else if (msg.type() != Exit) {
+    //         throw InvalidTransitionException(
+    //             fmt::format("{}: invalid transition to '{}'",
+    //                         state_->getSession()->getData(),
+    //                         magic_enum::enum_name(msg.type())));
+    //     }
+    // }
+
+    bool StateMachine::next(const Message& msg) {
         if (auto st = state_->transition(msg); st) {
             state_ = std::move(st);
-        } else if (msg.type() != Exit) {
-            throw InvalidTransitionException(
-                fmt::format("{}: invalid transition to '{}'",
-                            state_->getSession()->getData(),
-                            magic_enum::enum_name(msg.type())));
+            return true;
+        }  // else if (msg.type() != Exit) {
+        else {
+            return false;
         }
     }
 
@@ -22,11 +32,12 @@ namespace ses {
 
         switch (msg.type()) {
             case Register:
-                fmt::println("{} <- Connected\n", session->getData());
                 if (session->registerClient(msg.from_user())) {
+                    fmt::println("{} <- Connected\n", session->getData());
                     return RegisteredState::create(session, fsm_);
                 } else {
-                    return ConnectedState::create(session, fsm_);
+                    // return ConnectedState::create(session, fsm_);
+                    return std::unique_ptr<IState>{};
                 }
                 break;
             case Exit:
@@ -35,6 +46,8 @@ namespace ses {
                 return std::unique_ptr<IState>{};
                 break;
             default:
+                session->sendMessageToClient(
+                    MessageBuilder::operationDenied(msg.type()));
                 return std::unique_ptr<IState>{};
                 break;
         }
@@ -47,15 +60,15 @@ namespace ses {
 
         switch (msg.type()) {
             case Call:
-                fmt::println("{} <- Registered\n", session->getData());
                 if (session->callClient(msg.from_user(), msg.to_user())) {
+                    fmt::println("{} <- Registered\n", session->getData());
                     session->sendMessageToClient(
                         MessageBuilder::callConfirmed(msg.to_user()));
                     return CallingState::create(session, fsm_, msg.to_user());
                 }
                 session->sendMessageToClient(
                     MessageBuilder::callDenied(msg.to_user()));
-                return RegisteredState::create(session, fsm_);
+                return std::unique_ptr<IState>{};
                 break;
             case Answer:
                 fmt::println("{} <- Registered\n", session->getData());
@@ -70,6 +83,8 @@ namespace ses {
                 return std::unique_ptr<IState>{};
                 break;
             default:
+                session->sendMessageToClient(
+                    MessageBuilder::operationDenied(msg.type()));
                 return std::unique_ptr<IState>{};
                 break;
         }
@@ -112,6 +127,8 @@ namespace ses {
                 return std::unique_ptr<IState>{};
                 break;
             default:
+                session->sendMessageToClient(
+                    MessageBuilder::operationDenied(msg.type()));
                 return std::unique_ptr<IState>{};
                 break;
         }
@@ -159,6 +176,8 @@ namespace ses {
                 return std::unique_ptr<IState>{};
                 break;
             default:
+                session->sendMessageToClient(
+                    MessageBuilder::operationDenied(msg.type()));
                 return std::unique_ptr<IState>{};
                 break;
         }
@@ -171,7 +190,7 @@ namespace ses {
 
         switch (msg.type()) {
             case Text:
-                fmt::println("{} <- Talking\n", session->getData());
+                // fmt::println("{} <- Talking\n", session->getData());
 
                 if (msg.from_user().empty()) {
                     // secondary packet - peer processes packet
@@ -182,7 +201,8 @@ namespace ses {
                         peer_,
                         MessageBuilder::textQuery(msg.payload()));
                 }
-                return TalkingState::create(session, fsm_, peer_);
+                // return TalkingState::create(session, fsm_, peer_);
+                return std::unique_ptr<IState>{};
                 break;
             case End:
                 fmt::println("{} <- Talking\n", session->getData());
@@ -209,6 +229,8 @@ namespace ses {
                 return std::unique_ptr<IState>{};
                 break;
             default:
+                session->sendMessageToClient(
+                    MessageBuilder::operationDenied(msg.type()));
                 return std::unique_ptr<IState>{};
                 break;
         }

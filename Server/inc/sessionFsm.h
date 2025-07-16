@@ -15,11 +15,11 @@ class NullSessionException : public std::runtime_error {
       : std::runtime_error(msg) {}
 };
 
-class InvalidTransitionException : public std::runtime_error {
-   public:
-    explicit InvalidTransitionException(const std::string& msg)
-      : std::runtime_error(msg) {}
-};
+// class InvalidTransitionException : public std::runtime_error {
+//    public:
+//     explicit InvalidTransitionException(const std::string& msg)
+//       : std::runtime_error(msg) {}
+// };
 
 namespace ses {
     struct StateMachine;
@@ -129,13 +129,8 @@ namespace ses {
 
         static std::unique_ptr<IState> create(std::shared_ptr<ISession> session,
                                               StateMachine&             fsm,
-                                              const std::string&        peer,
-                                              bool firstTime = true) {
-            if (firstTime) {
-                fmt::println("{} -> Talking", session->getData());
-            }
-            // TODO : here you can move and return nullptr instead of creating
-            // new state
+                                              const std::string&        peer) {
+            fmt::println("{} -> Talking", session->getData());
             return std::make_unique<TalkingState>(session, fsm, peer);
         }
     };
@@ -148,6 +143,7 @@ namespace ses {
         StateMachine(std::shared_ptr<ISession> session)
           : state_{ConnectedState::create(session, *this)} {}
 
-        void next(const Message& msg);
+        // void next(const Message& msg);
+        bool next(const Message& msg);
     };
 }  // namespace ses
