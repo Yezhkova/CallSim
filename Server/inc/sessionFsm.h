@@ -36,10 +36,9 @@ namespace ses {
         virtual void sendMessageToSubscriberClient(const std::string& name,
                                                    const Message&     msg) = 0;
 
-        virtual std::string              getEndpoint() const = 0;
-        virtual boost::asio::io_context& getContext() const  = 0;
-        virtual std::shared_ptr<boost::asio::steady_timer> getTimer(
-            const std::string& name = "") const = 0;
+        virtual std::string              getEndpoint() const                = 0;
+        virtual boost::asio::io_context& getContext() const                 = 0;
+        virtual std::shared_ptr<boost::asio::steady_timer> getTimer() const = 0;
 
         virtual void close() = 0;
     };

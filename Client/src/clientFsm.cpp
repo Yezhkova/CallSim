@@ -44,17 +44,13 @@ namespace clt {
 
     std::unique_ptr<IState> CallingState::transition(const Message& msg) {
         switch (msg.type()) {
-            case Accepted:
-                fmt::println("<- Calling");
-                return TalkingState::create(fsm_);
-                break;
             case Rejected:
                 fmt::println("<- Calling");
                 return RegisteredState::create(fsm_);
                 break;
-            case Registered:
+            case Accepted:
                 fmt::println("<- Calling");
-                return RegisteredState::create(fsm_);
+                return TalkingState::create(fsm_);
                 break;
             default:
                 return std::unique_ptr<IState>{};
@@ -78,5 +74,19 @@ namespace clt {
         }
     };
 
-
+    std::unique_ptr<IState> TalkingState::transition(const Message& msg) {
+        switch (msg.type()) {
+            case Text:
+                fmt::println("<- Talking");
+                return TalkingState::create(fsm_);
+                break;
+            case Ended:
+                fmt::println("<- Talking");
+                return RegisteredState::create(fsm_);
+                break;
+            default:
+                return std::unique_ptr<IState>{};
+                break;
+        }
+    }
 }  // namespace clt

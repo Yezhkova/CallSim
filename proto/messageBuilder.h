@@ -164,11 +164,8 @@ class MessageBuilder {
     }
 };
 
-template <>
-struct fmt::formatter<Message> {
-    constexpr auto parse(format_parse_context& ctx) {
-        return ctx.begin();
-    }
+template <> struct fmt::formatter<Message> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 
     template <typename FormatContext>
     auto format(const Message& msg, FormatContext& ctx) const {
@@ -184,12 +181,13 @@ struct fmt::formatter<Message> {
             result += fmt::format(" - {}", msg.payload());
         }
         if (!result.empty()) {
-            std::time_t t = static_cast<std::time_t>(msg.timestamp() / 1000);
-            std::tm tm    = *std::localtime(&t);
-            result = fmt::format("{:%Y-%m-%d %H:%M:%S}", tm) + result;
+            std::time_t t  = static_cast<std::time_t>(msg.timestamp() / 1000);
+            std::tm     tm = *std::localtime(&t);
+            char buf[20];
+            std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &tm);
+            result = std::string(buf) + result;
         }
 
         return fmt::format_to(ctx.out(), "{}", result);
     }
 };
-
