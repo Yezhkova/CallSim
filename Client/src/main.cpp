@@ -15,6 +15,7 @@ int main() try {
     clt::StateMachine sm;
     sm.onRegistered = [client_transport, &ui](const std::string& login) {
         ui.setLogin(login);
+        client_transport->setLogin(login);
     };
 
     client_transport->onMessageArrival = [&sm](const Message& msg) {
@@ -39,15 +40,13 @@ int main() try {
         }};
 
     boost::asio::signal_set signals(io, SIGINT, SIGTERM, SIGHUP);
-    signals.async_wait(
-        [&](const boost::system::error_code&, int signal_number) {
-            fmt::println(
-                " Received signal {}, stopping client\nPress Enter to close "
-                "terminal",
-                signal_number);
-            ui.active_ = false;
-            ui.onCloseClientTransport();
-        });
+    signals.async_wait([&](const boost::system::error_code&,
+                           int signal_number) {
+        fmt::println(" Received signal {}, stopping client", signal_number);
+        ui.active_ = false;
+        ui.onCloseClientTransport();
+        fmt::print(fg(fmt::color::maroon), "Press Enter to close terminal\n");
+    });
 
     ui.run();
     client_transport->start();

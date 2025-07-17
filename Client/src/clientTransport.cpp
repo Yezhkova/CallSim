@@ -31,6 +31,7 @@ void ClientTransport::readHeader() {
                 self->readBody(*body_length);
             } else {
                 fmt::println(stderr, "Client parsing error: {}", ec.what());
+                self->reconnect();
                 return;
             }
         });
@@ -80,8 +81,41 @@ void ClientTransport::sendMessageToServer(const Message& msg_proto) {
         });
 }
 
+void ClientTransport::reconnect() {
+    int delay_ms = 3000;
+    fmt::print(fg(fmt::color::orange),
+               "[Client] Attempting reconnect in {} ms...\n",
+               delay_ms);
+    reconnect_timer_.expires_after(std::chrono::milliseconds(delay_ms));
+    reconnect_timer_.async_wait(
+        [self = shared_from_this()](boost::system::error_code ec) {
+            if (ec)
+                return;
+
+            self->socket_ = Tcp::socket(self->io_context_);
+            self->socket_.async_connect(
+                self->endpoint_,
+                [self](boost::system::error_code ec) {
+                    if (!ec) {
+                        fmt::print(fg(fmt::color::green),
+                                   "[Client] Reconnected to server.\n");
+                        self->start();
+                        if (!self->username_.empty()) {
+                            self->sendMessageToServer(
+                                MessageBuilder::registerQuery(self->username_));
+                        }
+                    } else {
+                        fmt::print(fg(fmt::color::red),
+                                   "[Client] Reconnect failed: {}",
+                                   ec.message());
+                        self->reconnect();
+                    }
+                });
+        });
+}
+
 void ClientTransport::shutdown() {
-    fmt::println("ClientTransport::shutdown()");
+    fmt::println("[Client] Shutting down socket...");
     boost::system::error_code ec;
     socket_.shutdown(Tcp::socket::shutdown_receive, ec);
     socket_.close(ec);

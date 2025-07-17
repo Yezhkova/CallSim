@@ -14,20 +14,27 @@ using Tcp = boost::asio::ip::tcp;
 class ClientTransport : public clt::IClientTransport,
                         public std::enable_shared_from_this<ClientTransport> {
    private:
-    boost::asio::io_context& io_context_;
-    Tcp::socket              socket_;
-    Tcp::endpoint            endpoint_;
+    boost::asio::io_context&  io_context_;
+    Tcp::socket               socket_;
+    Tcp::endpoint             endpoint_;
+    boost::asio::steady_timer reconnect_timer_;
+    std::string               username_ = "";
 
    public:
     ClientTransport(boost::asio::io_context& io, Tcp::endpoint endpoint)
-      : io_context_(io), socket_(io), endpoint_(endpoint){};
+      : io_context_(io)
+      , socket_(io)
+      , endpoint_(endpoint)
+      , reconnect_timer_(io){};
 
     void start();
     void readHeader();
     void readBody(uint32_t length);
 
     void sendMessageToServer(const Message& msg) override;
+    void setLogin(const std::string& login) { username_ = login; }
     void shutdown();
+    void reconnect();
 
     std::function<void(const Message& msg)> onMessageArrival;
 };
