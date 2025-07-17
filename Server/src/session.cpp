@@ -52,7 +52,6 @@ void Session::readBody(std::shared_ptr<uint32_t> length) {
             Message msg;
             if (msg.ParseFromArray(self->body_buf_.data(),
                                    self->body_buf_.size())) {
-                // fmt::println("{}", msg);
                 try {
                     self->nextState(msg);
                 } catch (const std::exception& ex) {

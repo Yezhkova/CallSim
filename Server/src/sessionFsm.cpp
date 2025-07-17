@@ -49,6 +49,7 @@ namespace ses {
             case Call:
                 if (session->callClient(msg.from_user(), msg.to_user())) {
                     fmt::println("{} <- Registered\n", session->getData());
+                    fmt::print("{}", msg);
                     session->sendMessageToClient(
                         MessageBuilder::callConfirmed(msg.to_user()));
                     return CallingState::create(session, fsm_, msg.to_user());

@@ -172,13 +172,27 @@ class MessageBuilder {
     }
 };
 
+struct TimestampMs {
+    int64_t value;
+};
+
+template <> struct fmt::formatter<TimestampMs> {
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const TimestampMs& ts, FormatContext& ctx) const {
+        std::time_t t  = static_cast<std::time_t>(ts.value / 1000);
+        std::tm     tm = *std::localtime(&t);
+        return fmt::format_to(ctx.out(), "{:%Y-%m-%d %H:%M:%S}", tm);
+    }
+};
+
 template <> struct fmt::formatter<Message> {
     constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 
     template <typename FormatContext>
     auto format(const Message& msg, FormatContext& ctx) const {
         std::string result;
-
         if (!msg.from_user().empty()) {
             result += fmt::format(" - [{}]", msg.from_user());
         }
@@ -189,11 +203,8 @@ template <> struct fmt::formatter<Message> {
             result += fmt::format(" - {}", msg.payload());
         }
         if (!result.empty()) {
-            std::time_t t  = static_cast<std::time_t>(msg.timestamp() / 1000);
-            std::tm     tm = *std::localtime(&t);
-            result         = fmt::format("{:%Y-%m-%d %H:%M:%S}", tm) + result;
+            result = fmt::format("{}", TimestampMs{msg.timestamp()}) + result + '\n';
         }
-
         return fmt::format_to(ctx.out(), "{}", result);
     }
 };

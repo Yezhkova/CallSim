@@ -46,7 +46,6 @@ void ClientTransport::readBody(uint32_t length) {
         [self, body_buf](boost::system::error_code ec, std::size_t) {
             Message msg;
             if (msg.ParseFromArray(body_buf->data(), body_buf->size())) {
-                fmt::println("{}", msg);
                 try {
                     self->onMessageArrival(msg);
                 } catch (const std::exception& e) {
@@ -119,5 +118,6 @@ void ClientTransport::shutdown() {
     boost::system::error_code ec;
     socket_.shutdown(Tcp::socket::shutdown_receive, ec);
     socket_.close(ec);
+    reconnect_timer_.cancel();
     io_context_.stop();
 };

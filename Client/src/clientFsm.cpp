@@ -12,11 +12,15 @@ namespace clt {
     std::unique_ptr<IState> ConnectedState::transition(const Message& msg) {
         switch (msg.type()) {
             case Registered:
+                fmt::println("{} - {}",
+                             TimestampMs{msg.timestamp()},
+                             msg.payload());
                 fmt::print(fg(fmt::color::blue), "<- Connected\n");
                 fsm_.onRegistered(msg.to_user());
                 return RegisteredState::create(fsm_);
                 break;
             default:
+                fmt::print(fg(fmt::color::red), "{}", msg);
                 return std::unique_ptr<IState>{};
                 break;
         }
@@ -34,6 +38,7 @@ namespace clt {
                 return AnsweringState::create(fsm_);
                 break;
             default:
+                fmt::print(fg(fmt::color::red), "{}", msg);
                 return std::unique_ptr<IState>{};
                 break;
         }
@@ -42,6 +47,7 @@ namespace clt {
     std::unique_ptr<IState> CallingState::transition(const Message& msg) {
         switch (msg.type()) {
             case Rejected:
+                fmt::print("{}", msg);
                 fmt::print(fg(fmt::color::magenta), "<- Calling\n");
                 return RegisteredState::create(fsm_);
                 break;
@@ -50,6 +56,7 @@ namespace clt {
                 return TalkingState::create(fsm_);
                 break;
             default:
+                fmt::print(fg(fmt::color::red), "{}", msg);
                 return std::unique_ptr<IState>{};
                 break;
         }
@@ -66,6 +73,7 @@ namespace clt {
                 return TalkingState::create(fsm_);
                 break;
             default:
+                fmt::print(fg(fmt::color::red), "{}", msg);
                 return std::unique_ptr<IState>{};
                 break;
         }
@@ -73,11 +81,19 @@ namespace clt {
 
     std::unique_ptr<IState> TalkingState::transition(const Message& msg) {
         switch (msg.type()) {
+            case Text:
+                fmt::print(fg(fmt::color::dark_slate_gray),
+                           "{} -{}\n",
+                           TimestampMs{msg.timestamp()},
+                           msg.payload());
+                return std::unique_ptr<IState>{};
+                break;
             case Ended:
                 fmt::print(fg(fmt::color::chocolate), "<- Talking\n");
                 return RegisteredState::create(fsm_);
                 break;
             default:
+                fmt::print(fg(fmt::color::red), "{}", msg);
                 return std::unique_ptr<IState>{};
                 break;
         }
