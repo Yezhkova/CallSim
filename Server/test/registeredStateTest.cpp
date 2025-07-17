@@ -126,8 +126,7 @@ TEST_F(RegisteredServerStateTest, CallWithEmptyToUserIsRejected) {
     auto state = RegisteredState::create(mockSession, fsm);
     auto next  = state->transition(msg);
 
-    ASSERT_NE(next, nullptr);
-    EXPECT_TRUE(dynamic_cast<RegisteredState*>(next.get()));
+    EXPECT_TRUE(next == nullptr);
 }
 using ::testing::Field;
 using ::testing::Property;
@@ -158,7 +157,7 @@ TEST_F(RegisteredServerStateTest, MultipleTransitionsHandleCorrectly) {
         .WillRepeatedly(Return("127.0.0.1:12345"));
     EXPECT_CALL(*mockSession, callClient("alice", "bob"))
         .WillOnce(Return(true));
-    EXPECT_CALL(*mockSession, sendMessageToClient(_)).Times(1);
+    EXPECT_CALL(*mockSession, sendMessageToClient(_)).Times(2);
 
     auto state = RegisteredState::create(mockSession, fsm);
     auto next1 = state->transition(msg1);

@@ -10,7 +10,7 @@ int main() try {
         Tcp::endpoint(boost::asio::ip::make_address("127.0.0.1"), 12345);
     auto client_transport = std::make_shared<ClientTransport>(io, endpoint);
 
-    clt::UiController  ui(io);
+    clt::UiController ui(io);
 
     clt::StateMachine sm;
     sm.onRegistered = [client_transport, &ui](const std::string& login) {
@@ -41,7 +41,10 @@ int main() try {
     boost::asio::signal_set signals(io, SIGINT, SIGTERM, SIGHUP);
     signals.async_wait(
         [&](const boost::system::error_code&, int signal_number) {
-            fmt::println(" Received signal {}, stopping client", signal_number);
+            fmt::println(
+                " Received signal {}, stopping client\nPress Enter to close "
+                "terminal",
+                signal_number);
             ui.active_ = false;
             ui.onCloseClientTransport();
         });
