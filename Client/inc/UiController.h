@@ -13,7 +13,6 @@ namespace clt {
        public:
         std::function<void(const Message& msg)> onMessageSend;
         std::function<void()>                   onCloseClientTransport;
-        bool                                    active_ = true;
 
        private:
         boost::asio::io_context& io_;
@@ -21,10 +20,11 @@ namespace clt {
 
        public:
         UiController(boost::asio::io_context& io) : io_(io) {}
+        std::atomic<bool> active_{true}; 
 
         void run();
 
         void setLogin(const std::string& login) { username_ = login; }
-        void stopClient();
+        const std::string& getLogin() { return username_; }
     };
 }  // namespace clt

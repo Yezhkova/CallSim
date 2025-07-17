@@ -8,6 +8,13 @@ int main() try {
     auto                    server = std::make_shared<Server>(io, 12345);
     server->start();
 
+    std::shared_ptr<void> cleanup{
+        nullptr,
+        [](void*) {
+            fmt::println("[Server] Shutting down Protobuf...");
+            google::protobuf::ShutdownProtobufLibrary();
+        }};
+
     boost::asio::signal_set signals(io, SIGINT, SIGTERM, SIGHUP);
     signals.async_wait(
         [&](const boost::system::error_code&, int signal_number) {
@@ -16,7 +23,6 @@ int main() try {
         });
 
     io.run();
-    google::protobuf::ShutdownProtobufLibrary();
     return 0;
 
 } catch (const std::exception& e) {

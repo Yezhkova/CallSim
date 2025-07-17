@@ -1,5 +1,6 @@
 #include "UiController.h"
 #include "clientTransport.h"
+#include "messageBuilder.h"
 #include <boost/asio.hpp>
 
 int main() try {
@@ -9,7 +10,7 @@ int main() try {
         Tcp::endpoint(boost::asio::ip::make_address("127.0.0.1"), 12345);
     auto client_transport = std::make_shared<ClientTransport>(io, endpoint);
 
-    clt::UiController ui(io);
+    clt::UiController  ui(io);
 
     clt::StateMachine sm;
     sm.onRegistered = [client_transport, &ui](const std::string& login) {
@@ -25,16 +26,25 @@ int main() try {
     };
 
     ui.onCloseClientTransport = [&ui, client_transport]() {
-        ui.active_ = false;
+        client_transport->sendMessageToServer(
+            MessageBuilder::exitQuery(ui.getLogin()));
         client_transport->shutdown();
     };
 
-    auto cleanup = std::unique_ptr<void, std::function<void(void*)>>{
+    std::shared_ptr<void> cleanup{
         nullptr,
         [](void*) {
-            fmt::println("Shutting down Protobuf...");
+            fmt::println("[Client] Shutting down Protobuf...");
             google::protobuf::ShutdownProtobufLibrary();
         }};
+
+    boost::asio::signal_set signals(io, SIGINT, SIGTERM, SIGHUP);
+    signals.async_wait(
+        [&](const boost::system::error_code&, int signal_number) {
+            fmt::println(" Received signal {}, stopping client", signal_number);
+            ui.active_ = false;
+            ui.onCloseClientTransport();
+        });
 
     ui.run();
     client_transport->start();
@@ -44,7 +54,6 @@ int main() try {
         threads.emplace_back([&io]() { io.run(); });
     }
     for (auto& th : threads) th.join();
-    fmt::print("leaving main\n");
     return 0;
 } catch (const std::exception& e) {
     fmt::println(stderr, "ClientTransport exception: {}", e.what());

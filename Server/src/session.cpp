@@ -19,10 +19,8 @@ void Session::readHeader() {
             if (ec == boost::asio::error::eof ||
                 ec == boost::asio::error::connection_reset) {
                 fmt::println("Client {} disconnected", self->getData());
-                self->nextState(MessageBuilder::exitQuery(self->username_));
                 return;
-            }
-            if (ec) {
+            } else if (ec) {
                 fmt::println(stderr,
                              "Read header error ({}): {}",
                              self->getData(),
@@ -54,19 +52,10 @@ void Session::readBody(std::shared_ptr<uint32_t> length) {
             Message msg;
             if (msg.ParseFromArray(self->body_buf_.data(),
                                    self->body_buf_.size())) {
-                fmt::println("{}", msg);
+                // fmt::println("{}", msg);
                 try {
                     self->nextState(msg);
-                    // if (!self->nextState(msg) && msg.type() != Exit) {
-                    //     self->sendMessageToClient(
-                    //         MessageBuilder::operationDenied(msg.type()));
-                    // }
-                }
-                // catch (const InvalidTransitionException& ex) {
-                //     self->sendMessageToClient(
-                //         MessageBuilder::operationDenied(msg.type()));
-                // }
-                catch (const std::exception& ex) {
+                } catch (const std::exception& ex) {
                     fmt::println(stderr, "[Server] {}", ex.what());
                     self->close();
                 }
@@ -109,14 +98,6 @@ void Session::sendMessageToSubscriberServer(const std::string& name,
         return;
     }
     it->nextState(msg);
-}
-void Session::sendMessageToSubscriberClient(const std::string& name,
-                                            const Message&     msg) {
-    auto it = getServer()->getSession(name);
-    if (!it) {
-        return;
-    }
-    it->sendMessageToClient(msg);
 }
 
 bool Session::registerClient(const std::string& name) {

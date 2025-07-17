@@ -55,8 +55,7 @@ TEST_F(RegisteredServerStateTest, CallRejectedStaysInRegisteredState) {
     auto state = RegisteredState::create(mockSession, fsm);
     auto next  = state->transition(msg);
 
-    ASSERT_NE(next, nullptr);
-    EXPECT_TRUE(dynamic_cast<RegisteredState*>(next.get()));
+    EXPECT_TRUE(next == nullptr);
 }
 
 TEST_F(RegisteredServerStateTest, AnswerMessageTransitionsToAnsweringState) {
@@ -75,8 +74,10 @@ TEST_F(RegisteredServerStateTest, AnswerMessageTransitionsToAnsweringState) {
 TEST_F(RegisteredServerStateTest, ExitDeletesClientAndReturnsNullptr) {
     auto msg = createMessage(MessageType::Exit);
     EXPECT_CALL(*mockSession, getData())
-        .WillOnce(::testing::Return("127.0.0.1:12345"));
+        .Times(2)
+        .WillRepeatedly(::testing::Return("127.0.0.1:12345"));
     EXPECT_CALL(*mockSession, deleteClient("alice")).Times(1);
+    EXPECT_CALL(*mockSession, close()).Times(1);
 
     auto state = RegisteredState::create(mockSession, fsm);
     auto next  = state->transition(msg);
@@ -86,8 +87,14 @@ TEST_F(RegisteredServerStateTest, ExitDeletesClientAndReturnsNullptr) {
 
 TEST_F(RegisteredServerStateTest, UnknownMessageReturnsNullptr) {
     auto msg = createMessage(MessageType::Text);
-    EXPECT_CALL(*mockSession, getData())
-        .WillOnce(::testing::Return("127.0.0.1:12345"));
+
+    EXPECT_CALL(*mockSession, getData()).WillOnce(Return("127.0.0.1:12345"));
+
+    EXPECT_CALL(*mockSession,
+                sendMessageToClient(::testing::Truly([](const Message& msg) {
+                    return msg.payload().find("Invalid transition") !=
+                           std::string::npos;
+                })));
 
     auto state = RegisteredState::create(mockSession, fsm);
     auto next  = state->transition(msg);

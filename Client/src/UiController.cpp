@@ -6,22 +6,17 @@ namespace clt {
     void UiController::run() {
         boost::asio::post(io_, [this]() {
             std::string line;
-            while (std::getline(std::cin, line) && this->active_) {
+            while (active_ && std::getline(std::cin, line)) {
+
+                if (line.find("exit") != std::string::npos) {
+                    onCloseClientTransport();
+                    break;
+                }
                 boost::asio::post(io_, [this, line]() {
                     std::istringstream iss(line);
                     std::string        command;
                     iss >> command;
-
-                    std::transform(
-                        command.begin(),
-                        command.end(),
-                        command.begin(),
-                        [](unsigned char c) { return std::tolower(c); });
-
-                    if (command == "exit") {
-                        stopClient();
-                        this->active_ = false;
-                    } else if (command == "register") {
+                    if (command == "register") {
                         std::string login;
                         iss >> login;
                         onMessageSend(MessageBuilder::registerQuery(login));
@@ -35,10 +30,10 @@ namespace clt {
                     } else if (command == "reject") {
                         onMessageSend(MessageBuilder::rejectQuery(username_));
                     } else if (command == "text") {
-                        std::string messageText;
-                        std::getline(iss, messageText);
+                        std::string message_text;
+                        std::getline(iss, message_text);
                         onMessageSend(
-                            MessageBuilder::textQuery(messageText, username_));
+                            MessageBuilder::textQuery(message_text, username_));
                     } else if (command == "end") {
                         onMessageSend(MessageBuilder::endQuery(username_));
                     } else {
@@ -48,11 +43,6 @@ namespace clt {
                 });
             }
         });
-    }
-
-    void UiController::stopClient() {
-        onMessageSend(MessageBuilder::exitQuery(username_));
-        onCloseClientTransport();
     }
 
 }  // namespace clt

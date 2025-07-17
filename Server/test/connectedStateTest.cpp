@@ -15,13 +15,12 @@ using namespace ses;
 class ConnectedServerStateTest : public ::testing::Test {
    protected:
     std::shared_ptr<StrictMock<MockSession>> session;
-    StateMachine                        fsm;
-    std::unique_ptr<IState>             state;
+    StateMachine                             fsm;
+    std::unique_ptr<IState>                  state;
 
     void SetUp() override {
         session = std::make_shared<StrictMock<MockSession>>();
-        ON_CALL(*session, getData())
-            .WillByDefault(Return("127.0.0.1:1111"));
+        ON_CALL(*session, getData()).WillByDefault(Return("127.0.0.1:1111"));
         state = std::make_unique<ConnectedState>(session, fsm);
     }
 
@@ -46,16 +45,15 @@ TEST_F(ConnectedServerStateTest, RegisterSuccessTransitionsToRegistered) {
 
 TEST_F(ConnectedServerStateTest, RegisterFailsStaysInConnected) {
     EXPECT_CALL(*session, registerClient("bob")).WillOnce(Return(false));
-    EXPECT_CALL(*session, getData()).Times(2);
 
     Message msg  = makeMessage(MessageType::Register, "bob");
     auto    next = state->transition(msg);
 
-    ASSERT_NE(next, nullptr);
-    EXPECT_TRUE(dynamic_cast<ConnectedState*>(next.get()));
+    EXPECT_TRUE(next == nullptr);
 }
 
 TEST_F(ConnectedServerStateTest, ExitClosesSessionAndReturnsNull) {
+    EXPECT_CALL(*session, getData()).WillRepeatedly(Return("127.0.0.1:1111"));
     EXPECT_CALL(*session, close()).Times(1);
 
     Message msg  = makeMessage(MessageType::Exit);
@@ -65,6 +63,12 @@ TEST_F(ConnectedServerStateTest, ExitClosesSessionAndReturnsNull) {
 }
 
 TEST_F(ConnectedServerStateTest, UnknownMessageReturnsNullptr) {
+    EXPECT_CALL(*session, sendMessageToClient(testing::_))
+    .Times(1)
+    .WillOnce([](const Message& msg) {
+        EXPECT_EQ(msg.payload(), "Invalid transition to 'Call'");
+    });
+
     Message msg  = makeMessage(MessageType::Call);
     auto    next = state->transition(msg);
     EXPECT_EQ(next, nullptr);
@@ -84,19 +88,16 @@ TEST_F(ConnectedServerStateTest, ThrowsIfSessionExpired) {
 
 TEST_F(ConnectedServerStateTest, RegisterWithEmptyFromUserFails) {
     EXPECT_CALL(*session, registerClient("")).WillOnce(Return(false));
-    EXPECT_CALL(*session, getData()).Times(2);
 
     Message msg  = makeMessage(MessageType::Register, "");
     auto    next = state->transition(msg);
 
-    ASSERT_NE(next, nullptr);
-    EXPECT_TRUE(dynamic_cast<ConnectedState*>(next.get()));
+    EXPECT_TRUE(next == nullptr);
 }
 
 TEST_F(ConnectedServerStateTest, RepeatRegisterFromSameUserIsDenied) {
+    EXPECT_CALL(*session, getData()).WillRepeatedly(Return("127.0.0.1:1111"));
     Message msg = makeMessage(MessageType::Register, "alice");
-
-    EXPECT_CALL(*session, getData()).Times(2);
     EXPECT_CALL(*session, registerClient("alice")).WillOnce(Return(true));
 
     auto first_transition = state->transition(msg);
@@ -114,8 +115,6 @@ TEST_F(ConnectedServerStateTest, RepeatRegisterFromSameUserIsDenied) {
         sendMessageToClient(Property(&Message::type, MessageType::Rejected)))
         .Times(1);
 
-    EXPECT_CALL(*session, getData()).Times(2);
-
     EXPECT_CALL(*session, registerClient("alice"))
         .WillOnce([&](const std::string& name) {
             Message msg;
@@ -126,6 +125,5 @@ TEST_F(ConnectedServerStateTest, RepeatRegisterFromSameUserIsDenied) {
         });
 
     auto second_transition = second_state->transition(msg);
-    ASSERT_NE(second_transition, nullptr);
-    EXPECT_TRUE(dynamic_cast<ConnectedState*>(second_transition.get()));
+    EXPECT_TRUE(second_transition == nullptr);
 }

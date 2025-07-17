@@ -19,8 +19,7 @@ class ConnectedClientStateTest : public ::testing::Test {
 TEST_F(ConnectedClientStateTest, RejectedMessageReturnsConnectedState) {
     Message msg  = createMessage(MessageType::Rejected);
     auto    next = state->transition(msg);
-    ASSERT_NE(next, nullptr);
-    EXPECT_TRUE(dynamic_cast<ConnectedState*>(next.get()));
+    EXPECT_TRUE(next == nullptr);
 }
 
 TEST_F(ConnectedClientStateTest,
@@ -38,8 +37,7 @@ TEST_F(ConnectedClientStateTest, RejectedMessageKeepsStateConnected) {
     Message     msg = createMessage(MessageType::Rejected, attempted_login);
     EXPECT_CALL(fsm, onRegisterMock).Times(0);
     auto next = state->transition(msg);
-    ASSERT_NE(next, nullptr);
-    EXPECT_TRUE(dynamic_cast<ConnectedState*>(next.get()) != nullptr);
+    EXPECT_TRUE(next == nullptr);
 }
 
 TEST_F(ConnectedClientStateTest, UnknownMessageTypeReturnsNullptr) {
@@ -71,10 +69,7 @@ TEST_F(ConnectedClientStateTest,
     Message msg = createMessage(MessageType::Rejected);
 
     auto next1 = state->transition(msg);
-    ASSERT_NE(next1, nullptr);
-    EXPECT_TRUE(dynamic_cast<ConnectedState*>(next1.get()));
-
-    auto next2 = next1->transition(msg);
-    ASSERT_NE(next2, nullptr);
-    EXPECT_TRUE(dynamic_cast<ConnectedState*>(next2.get()));
+    EXPECT_TRUE(next1 == nullptr);
+    auto next2 = state->transition(msg); 
+    EXPECT_TRUE(next2 == nullptr);  
 }

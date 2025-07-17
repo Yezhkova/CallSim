@@ -31,6 +31,7 @@ void ClientTransport::readHeader() {
                 self->readBody(*body_length);
             } else {
                 fmt::println(stderr, "Client parsing error: {}", ec.what());
+                return;
             }
         });
 }
@@ -73,7 +74,7 @@ void ClientTransport::sendMessageToServer(const Message& msg_proto) {
         boost::asio::buffer(*msg),
         [self, msg](boost::system::error_code ec, std::size_t) {
             if (ec) {
-                fmt::println("[Client::sendMessageToClient] error: {}",
+                fmt::println("[Client::sendMessageToServer] error: {}",
                              ec.what());
             }
         });

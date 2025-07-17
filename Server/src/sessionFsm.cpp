@@ -4,23 +4,11 @@
 
 namespace ses {
 
-    // void StateMachine::next(const Message& msg) {
-    //     if (auto st = state_->transition(msg); st) {
-    //         state_ = std::move(st);
-    //     } else if (msg.type() != Exit) {
-    //         throw InvalidTransitionException(
-    //             fmt::format("{}: invalid transition to '{}'",
-    //                         state_->getSession()->getData(),
-    //                         magic_enum::enum_name(msg.type())));
-    //     }
-    // }
-
     bool StateMachine::next(const Message& msg) {
         if (auto st = state_->transition(msg); st) {
             state_ = std::move(st);
             return true;
-        }  // else if (msg.type() != Exit) {
-        else {
+        } else {
             return false;
         }
     }
@@ -36,7 +24,6 @@ namespace ses {
                     fmt::println("{} <- Connected\n", session->getData());
                     return RegisteredState::create(session, fsm_);
                 } else {
-                    // return ConnectedState::create(session, fsm_);
                     return std::unique_ptr<IState>{};
                 }
                 break;
@@ -190,8 +177,6 @@ namespace ses {
 
         switch (msg.type()) {
             case Text:
-                // fmt::println("{} <- Talking\n", session->getData());
-
                 if (msg.from_user().empty()) {
                     // secondary packet - peer processes packet
                     session->sendMessageToClient(msg);
@@ -201,7 +186,6 @@ namespace ses {
                         peer_,
                         MessageBuilder::textQuery(msg.payload()));
                 }
-                // return TalkingState::create(session, fsm_, peer_);
                 return std::unique_ptr<IState>{};
                 break;
             case End:

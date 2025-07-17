@@ -72,7 +72,6 @@ namespace clt {
 
         static std::unique_ptr<IState> create(StateMachine& fsm) {
             fmt::print(fg(fmt::color::chocolate), "-> Talking\n");
-            // TODO: maybe move here instead of returning unique_ptr
             return std::make_unique<TalkingState>(fsm);
         }
     };

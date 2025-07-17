@@ -15,12 +15,6 @@ class NullSessionException : public std::runtime_error {
       : std::runtime_error(msg) {}
 };
 
-// class InvalidTransitionException : public std::runtime_error {
-//    public:
-//     explicit InvalidTransitionException(const std::string& msg)
-//       : std::runtime_error(msg) {}
-// };
-
 namespace ses {
     struct StateMachine;
 
@@ -32,8 +26,6 @@ namespace ses {
                                 const std::string& receiver)           = 0;
         virtual void sendMessageToClient(const Message& msg)           = 0;
         virtual void sendMessageToSubscriberServer(const std::string& name,
-                                                   const Message&     msg) = 0;
-        virtual void sendMessageToSubscriberClient(const std::string& name,
                                                    const Message&     msg) = 0;
 
         virtual std::string              getData() const                    = 0;
@@ -143,7 +135,6 @@ namespace ses {
         StateMachine(std::shared_ptr<ISession> session)
           : state_{ConnectedState::create(session, *this)} {}
 
-        // void next(const Message& msg);
         bool next(const Message& msg);
     };
 }  // namespace ses
