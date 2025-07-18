@@ -123,7 +123,7 @@ bool Session::callClient(const std::string& sender,
             return false;
         }
 
-        receiver_it->timer_->expires_after(std::chrono::seconds(13));
+        receiver_it->timer_->expires_after(std::chrono::seconds(10));
         receiver_it->timer_->async_wait(
             [receiver_it, receiver](const boost::system::error_code& ec) {
                 if (ec) {

@@ -34,6 +34,9 @@ namespace clt {
             fmt::print(fg(fmt::color::blue), "-> Connected\n");
             return std::make_unique<ConnectedState>(fsm);
         }
+        // ~ConnectedState() {
+        //     fmt::print(fg(fmt::color::blue), "<- Connected\n");
+        // }
     };
 
     struct RegisteredState : public IState {
@@ -44,6 +47,9 @@ namespace clt {
             fmt::print(fg(fmt::color::green), "-> Registered\n");
             return std::make_unique<RegisteredState>(fsm);
         }
+        // ~RegisteredState() {
+        //     fmt::print(fg(fmt::color::green), "<- Registered\n");
+        // }
     };
 
     struct CallingState : public IState {
@@ -54,6 +60,7 @@ namespace clt {
             fmt::print(fg(fmt::color::magenta), "-> Calling\n");
             return std::make_unique<CallingState>(fsm);
         }
+        // ~CallingState() { fmt::print(fg(fmt::color::magenta), "<- Calling\n"); }
     };
 
     struct AnsweringState : public IState {
@@ -64,6 +71,9 @@ namespace clt {
             fmt::print(fg(fmt::color::purple), "-> Answering (with timeout)\n");
             return std::make_unique<AnsweringState>(fsm);
         }
+        // ~AnsweringState() {
+        //     fmt::print(fg(fmt::color::purple), "<- Answering\n");
+        // }
     };
 
     struct TalkingState : public IState {
@@ -74,6 +84,9 @@ namespace clt {
             fmt::print(fg(fmt::color::chocolate), "-> Talking\n");
             return std::make_unique<TalkingState>(fsm);
         }
+        // ~TalkingState() {
+        //     fmt::print(fg(fmt::color::chocolate), "<- Talking\n");
+        // }
     };
 
     struct StateMachine {

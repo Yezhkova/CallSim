@@ -105,7 +105,7 @@ void ClientTransport::reconnect() {
                         }
                     } else {
                         fmt::print(fg(fmt::color::red),
-                                   "[Client] Reconnect failed: {}",
+                                   "[Client] Reconnect failed: {}\n",
                                    ec.message());
                         self->reconnect();
                     }
