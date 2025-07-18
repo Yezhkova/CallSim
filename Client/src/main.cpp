@@ -22,6 +22,10 @@ int main() try {
         sm.next(msg);
     };
 
+    client_transport->onReconnect = [&sm]() {
+        sm.reset();
+    };
+
     ui.onMessageSend = [&sm, client_transport](const Message& msg) {
         client_transport->sendMessageToServer(msg);
     };

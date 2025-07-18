@@ -183,6 +183,7 @@ namespace ses {
                     session->sendMessageToClient(msg);
                 } else {
                     // primary packet - send to peer
+                    fmt::println("{}", msg);
                     session->sendMessageToSubscriberServer(
                         peer_,
                         MessageBuilder::textQuery(msg.payload()));

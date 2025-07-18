@@ -37,4 +37,5 @@ class ClientTransport : public clt::IClientTransport,
     void reconnect();
 
     std::function<void(const Message& msg)> onMessageArrival;
+    std::function<void()>                   onReconnect;
 };

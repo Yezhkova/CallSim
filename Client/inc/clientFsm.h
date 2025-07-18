@@ -60,7 +60,8 @@ namespace clt {
             fmt::print(fg(fmt::color::magenta), "-> Calling\n");
             return std::make_unique<CallingState>(fsm);
         }
-        // ~CallingState() { fmt::print(fg(fmt::color::magenta), "<- Calling\n"); }
+        // ~CallingState() { fmt::print(fg(fmt::color::magenta), "<-
+        // Calling\n"); }
     };
 
     struct AnsweringState : public IState {
@@ -97,6 +98,7 @@ namespace clt {
 
         std::function<void(const std::string& login)> onRegistered;
         void                                          next(const Message& msg);
+        void reset() { state_ = {ConnectedState::create(*this)}; }
     };
 
 }  // namespace clt

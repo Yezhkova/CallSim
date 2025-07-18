@@ -10,10 +10,9 @@ void ClientTransport::start() {
                 "To register, enter 'register <your login>', or 'exit'");
             self->readHeader();
         } else {
-            fmt::println(stderr,
-                         "[Client] Failed to connect: {}. Please enter 'exit'",
-                         ec.message());
-            self->shutdown();
+            fmt::print(fg(fmt::color::maroon),
+                       "[Client] Failed to connect: {}. Please enter 'exit'\n",
+                       ec.message());
         }
     });
 }
@@ -100,6 +99,7 @@ void ClientTransport::reconnect() {
                                    "[Client] Reconnected to server.\n");
                         self->start();
                         if (!self->username_.empty()) {
+                            self->onReconnect();
                             self->sendMessageToServer(
                                 MessageBuilder::registerQuery(self->username_));
                         }
